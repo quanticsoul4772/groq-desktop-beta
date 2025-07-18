@@ -20,7 +20,8 @@ function loadSettings() {
             disabledMcpServers: [],
             customSystemPrompt: '',
             popupEnabled: true,
-            customCompletionUrl: ''
+            customCompletionUrl: '',
+            toolOutputLimit: 8000
         };
     }
     const userDataPath = appInstance.getPath('userData');
@@ -34,7 +35,8 @@ function loadSettings() {
         disabledMcpServers: [],
         customSystemPrompt: '',
         popupEnabled: true,
-        customCompletionUrl: ''
+        customCompletionUrl: '',
+        toolOutputLimit: 8000
     };
 
     try {
@@ -70,6 +72,7 @@ function loadSettings() {
                 console.warn('GROQ_API_KEY not configured - autocomplete will not work');
             }
             settings.customCompletionUrl = settings.customCompletionUrl || defaultSettings.customCompletionUrl;
+            settings.toolOutputLimit = settings.toolOutputLimit ?? defaultSettings.toolOutputLimit;
 
             // Optional: Persist the potentially updated settings back to file if defaults were applied
             // fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));

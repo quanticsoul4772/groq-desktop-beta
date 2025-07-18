@@ -274,8 +274,9 @@ app.whenReady().then(async () => {
   // Tool execution (use module object)
   console.log("[Main Init] Registering execute-tool-call...");
   ipcMain.handle('execute-tool-call', async (event, toolCall) => {
+    const currentSettings = loadSettings();
     const { discoveredTools, mcpClients } = mcpManager.getMcpState(); // Use module object
-    return toolHandler.handleExecuteToolCall(event, toolCall, discoveredTools, mcpClients);
+    return toolHandler.handleExecuteToolCall(event, toolCall, discoveredTools, mcpClients, currentSettings);
   });
 
   // Handler for getting model configurations

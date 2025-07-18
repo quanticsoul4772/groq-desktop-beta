@@ -122,7 +122,12 @@ function ToolCall({ toolCall, toolResult }) {
 
             {result && !error && (
               <div className="mt-2">
-                <div className="text-sm font-medium text-gray-400 mb-1">Result:</div>
+                <div className="text-sm font-medium text-gray-400 mb-1 flex items-center justify-between">
+                  <span>Result:</span>
+                  <span className="text-xs text-gray-500 font-normal">
+                    {result.length.toLocaleString()} characters
+                  </span>
+                </div>
                 <div className="rounded-md text-sm overflow-x-auto">
                   <SyntaxHighlighter 
                     language="json" 

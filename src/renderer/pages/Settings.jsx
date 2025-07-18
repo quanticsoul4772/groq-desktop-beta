@@ -19,7 +19,8 @@ function Settings() {
     disabledMcpServers: [],
     customSystemPrompt: '',
     popupEnabled: true,
-    customCompletionUrl: ''
+    customCompletionUrl: '',
+    toolOutputLimit: 8000
   });
   const [saveStatus, setSaveStatus] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,7 +62,8 @@ function Settings() {
             disabledMcpServers: [],
             customSystemPrompt: '',
             popupEnabled: true,
-            customCompletionUrl: ''
+            customCompletionUrl: '',
+            toolOutputLimit: 8000
         }));
       }
     };

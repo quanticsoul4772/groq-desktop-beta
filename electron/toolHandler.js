@@ -7,9 +7,10 @@ const { limitContentLength } = require('./utils');
  * @param {object} toolCall - The tool call object received from the model.
  * @param {Array<object>} discoveredTools - List of available MCP tools.
  * @param {object} mcpClients - Object mapping server IDs to active MCP client instances.
+ * @param {object} settings - The current application settings.
  * @returns {Promise<object>} - A promise resolving to the tool result or error.
  */
-async function handleExecuteToolCall(event, toolCall, discoveredTools, mcpClients) {
+async function handleExecuteToolCall(event, toolCall, discoveredTools, mcpClients, settings) {
   console.log(`Handling execute-tool-call for: ${toolCall?.function?.name} (ID: ${toolCall?.id})`);
 
   // Basic validation of the tool call object
@@ -98,7 +99,7 @@ async function handleExecuteToolCall(event, toolCall, discoveredTools, mcpClient
        }
 
       return {
-        result: limitContentLength(resultString), // Limit length *after* stringifying
+        result: limitContentLength(resultString, settings.toolOutputLimit), // Limit length *after* stringifying
         tool_call_id: toolCallId
       };
     } catch (executionError) {
@@ -109,7 +110,7 @@ async function handleExecuteToolCall(event, toolCall, discoveredTools, mcpClient
       }
       return {
         // Provide a more informative error message back to the model
-        error: limitContentLength(`Error during execution of tool "${toolName}": ${executionError.message}`),
+        error: limitContentLength(`Error during execution of tool "${toolName}": ${executionError.message}`, settings.toolOutputLimit),
         tool_call_id: toolCallId
       };
     }
