@@ -21,31 +21,34 @@ function checkVisionSupport(messages, modelInfo, modelToUse) {
     );
 
     if (hasImages && !modelInfo.vision_supported) {
-        throw new Error(`The selected model (${modelToUse}) does not support image inputs. Please select a vision-capable model.`);
+        console.warn(`Attempting to use images with non-vision model: ${modelToUse}`);
+        event.sender.send('chat-stream-error', { error: `The selected model (${modelToUse}) does not support image inputs. Please select a vision-capable model.` });
+        return;
     }
-}
 
-function prepareTools(discoveredTools) {
-    return (discoveredTools || []).map(tool => ({
+    // Initialize Groq SDK
+    const groq = new Groq({ apiKey: settings.GROQ_API_KEY });
+
+    // Prepare tools for the API call
+    const tools = (discoveredTools || []).map(tool => ({
         type: "function",
         function: {
             name: tool.name,
             description: tool.description,
-            parameters: tool.input_schema || {}
+            parameters: tool.input_schema || {} // Ensure parameters is an object
         }
     }));
-}
+    console.log(`Prepared ${tools.length} tools for the API call.`);
 
-// Removes internal UI fields and ensures API-compatible message format
-function cleanMessages(messages) {
-    return messages.map(msg => {
+    // Clean and prepare messages for the API
+    // 1. Remove internal fields like 'reasoning', 'isStreaming'
+    // 2. Ensure correct content format (user: array, assistant: string, tool: string)
+    const cleanedMessages = messages.map(msg => {
+        // Create a clean copy, then delete unwanted properties
         const cleanMsg = { ...msg };
-        // Remove compound-beta and UI-specific fields before API call
         delete cleanMsg.reasoning;
         delete cleanMsg.isStreaming;
-        delete cleanMsg.executed_tools;
-        delete cleanMsg.liveReasoning;
-        delete cleanMsg.liveExecutedTools;
+        let finalMsg = { ...cleanMsg };
 
         // Ensure user content is array format for vision support
         if (cleanMsg.role === 'user') {
@@ -257,8 +260,8 @@ async function executeStreamWithRetry(groq, chatCompletionParams, event) {
         }
     }
 
-    event.sender.send('chat-stream-error', { 
-        error: `The model repeatedly failed to use tools correctly after ${MAX_TOOL_USE_RETRIES + 1} attempts. Please try rephrasing your request.` 
+    event.sender.send('chat-stream-error', {
+        error: `The model repeatedly failed to use tools correctly after ${MAX_TOOL_USE_RETRIES + 1} attempts. Please try rephrasing your request.`
     });
 }
 
@@ -278,13 +281,13 @@ async function handleChatStream(event, messages, model, settings, modelContextSi
         validateApiKey(settings);
         const { modelToUse, modelInfo } = determineModel(model, settings, modelContextSizes);
         checkVisionSupport(messages, modelInfo, modelToUse);
-        
+
         const groq = new Groq({ apiKey: settings.GROQ_API_KEY });
         const tools = prepareTools(discoveredTools);
         const cleanedMessages = cleanMessages(messages);
         const prunedMessages = pruneMessageHistory(cleanedMessages, modelToUse, modelContextSizes);
         const chatCompletionParams = buildApiParams(prunedMessages, modelToUse, settings, tools);
-        
+
         await executeStreamWithRetry(groq, chatCompletionParams, event);
     } catch (outerError) {
         event.sender.send('chat-stream-error', { error: outerError.message || `Setup error: ${outerError}` });

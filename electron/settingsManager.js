@@ -19,7 +19,8 @@ function loadSettings() {
             mcpServers: {},
             disabledMcpServers: [],
             customSystemPrompt: '',
-            popupEnabled: true
+            popupEnabled: true,
+            customCompletionUrl: ''
         };
     }
     const userDataPath = appInstance.getPath('userData');
@@ -32,7 +33,8 @@ function loadSettings() {
         mcpServers: {},
         disabledMcpServers: [],
         customSystemPrompt: '',
-        popupEnabled: true
+        popupEnabled: true,
+        customCompletionUrl: ''
     };
 
     try {
@@ -51,7 +53,7 @@ function loadSettings() {
                 // Explicitly check and apply defaults for potentially missing/undefined fields
                 settings.GROQ_API_KEY = settings.GROQ_API_KEY || defaultSettings.GROQ_API_KEY;
             }
-            
+
             settings.model = settings.model || defaultSettings.model;
             settings.temperature = settings.temperature ?? defaultSettings.temperature; // Use nullish coalescing
             settings.top_p = settings.top_p ?? defaultSettings.top_p;
@@ -67,6 +69,7 @@ function loadSettings() {
             } else {
                 console.warn('GROQ_API_KEY not configured - autocomplete will not work');
             }
+            settings.customCompletionUrl = settings.customCompletionUrl || defaultSettings.customCompletionUrl;
 
             // Optional: Persist the potentially updated settings back to file if defaults were applied
             // fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
@@ -76,7 +79,7 @@ function loadSettings() {
             // Create settings file with defaults if it doesn't exist
             fs.writeFileSync(settingsPath, JSON.stringify(defaultSettings, null, 2));
             console.log('Settings file created with defaults at:', settingsPath);
-            
+
             // Log API key status for new installations
             if (defaultSettings.GROQ_API_KEY && defaultSettings.GROQ_API_KEY !== "<replace me>") {
                 const keyPreview = defaultSettings.GROQ_API_KEY.substring(0, 8) + '...';
@@ -84,7 +87,7 @@ function loadSettings() {
             } else {
                 console.warn('GROQ_API_KEY not configured - please set it in .env file or settings');
             }
-            
+
             return defaultSettings;
         }
     } catch (error) {
@@ -104,44 +107,44 @@ function initializeSettingsHandlers(ipcMain, app) {
 
     // Handler for getting settings
     ipcMain.handle('get-settings', async () => {
-      return loadSettings();
+        return loadSettings();
     });
 
     // Handler for getting settings file path
     ipcMain.handle('get-settings-path', async () => {
-      const userDataPath = appInstance.getPath('userData'); // Use stored instance
-      const settingsPath = path.join(userDataPath, 'settings.json');
-      return settingsPath;
+        const userDataPath = appInstance.getPath('userData'); // Use stored instance
+        const settingsPath = path.join(userDataPath, 'settings.json');
+        return settingsPath;
     });
 
     // Handler for reloading settings from disk
     ipcMain.handle('reload-settings', async () => {
-      try {
-        const settings = loadSettings(); // Reload and validate
-        return { success: true, settings };
-      } catch (error) {
-         console.error('Error reloading settings via handler:', error);
-         return { success: false, error: error.message };
-      }
+        try {
+            const settings = loadSettings(); // Reload and validate
+            return { success: true, settings };
+        } catch (error) {
+            console.error('Error reloading settings via handler:', error);
+            return { success: false, error: error.message };
+        }
     });
 
     // Handler for saving settings
     ipcMain.handle('save-settings', async (event, settings) => {
-      const userDataPath = appInstance.getPath('userData'); // Use stored instance
-      const settingsPath = path.join(userDataPath, 'settings.json');
+        const userDataPath = appInstance.getPath('userData'); // Use stored instance
+        const settingsPath = path.join(userDataPath, 'settings.json');
 
-      try {
-        // Basic validation before saving
-        if (!settings || typeof settings !== 'object') {
-            throw new Error("Invalid settings object provided.");
+        try {
+            // Basic validation before saving
+            if (!settings || typeof settings !== 'object') {
+                throw new Error("Invalid settings object provided.");
+            }
+            // Optionally add more validation here
+            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            return { success: false, error: error.message };
         }
-         // Optionally add more validation here
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-        return { success: true };
-      } catch (error) {
-        console.error('Error saving settings:', error);
-        return { success: false, error: error.message };
-      }
     });
 }
 

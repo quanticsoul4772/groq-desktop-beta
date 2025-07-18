@@ -18,7 +18,8 @@ function Settings() {
     mcpServers: {},
     disabledMcpServers: [],
     customSystemPrompt: '',
-    popupEnabled: true
+    popupEnabled: true,
+    customCompletionUrl: ''
   });
   const [saveStatus, setSaveStatus] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -59,7 +60,8 @@ function Settings() {
             mcpServers: {},
             disabledMcpServers: [],
             customSystemPrompt: '',
-            popupEnabled: true
+            popupEnabled: true,
+            customCompletionUrl: ''
         }));
       }
     };
