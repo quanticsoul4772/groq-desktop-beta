@@ -15,6 +15,7 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
   const currentReasoning = liveReasoning || reasoning;
   const currentTools = liveExecutedTools?.length > 0 ? liveExecutedTools : executed_tools;
 
+  console.log("Message", message.content);
 
   // Find tool results for this message's tool calls in the messages array
   const findToolResult = (toolCallId) => {
@@ -31,7 +32,9 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
   const messageClasses = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
   // Apply background only for user messages
   const bubbleStyle = isUser ? 'bg-gray-200' : ''; // No background for assistant/system
-  const bubbleClasses = `relative px-4 py-3 rounded-lg ${isUser ? 'max-w-xl' : 'w-full'} ${bubbleStyle}`; // Full width for assistant
+  const bubbleClasses = isUser
+    ? `relative overflow-x-auto px-4 py-3 rounded-lg max-w-xl max-h-[500px] overflow-y-auto cursor-pointer ${bubbleStyle}`
+    : `relative overflow-x-auto my-3 py-3 w-full border-b border-gray-300`; // Assistant bubbles full-width, no background
   const wrapperClasses = `message-content-wrapper ${isUser ? 'text-black' : 'text-black'} break-words`; // Keep text white for both, use break-words
 
   const toggleReasoning = () => setShowReasoning(!showReasoning);
@@ -50,7 +53,7 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
 
         {/* Simple dropdowns - always visible when content exists */}
         {!isUser && (hasReasoning || hasExecutedTools) && (
-          <div className="mb-3 border-b border-gray-300 pb-3 space-y-2">
+          <div className="pb-5 border-b border-gray-300 space-y-2">
             <div className="flex flex-wrap gap-2">
               {/* Reasoning dropdown - blue */}
               {hasReasoning && (
@@ -60,7 +63,7 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
                 >
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-4 w-4 mr-1 transition-transform duration-200 ${showReasoning ? 'rotate-90' : ''}`} 
+                    className={`h-10 w-4 mr-1 transition-transform duration-200 ${showReasoning ? 'rotate-90' : ''}`} 
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"
@@ -107,8 +110,8 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
             
             {/* Reasoning content */}
             {(showReasoning || (isStreamingMessage && liveReasoning)) && currentReasoning && (
-              <div className="p-3 bg-blue-50 rounded-md text-sm ">
-                <div className="whitespace-pre-wrap break-words text-blue-900 leading-tight">
+              <div className="p-3 bg-blue-50 rounded-md text-md ">
+                <div className="whitespace-pre-wrap break-words text-blue-900">
                   <MarkdownRenderer
                     content={currentReasoning
                       .replace(/<tool[^>]*>([\s\S]*?)<\/tool>/gi, '**Tool call:**\n```$1```')

@@ -55,8 +55,8 @@ function MessageList({ messages = [], onToolCallExecute, onRemoveLastMessage }) 
                 {Array.isArray(message.content) ? (
                   message.content.map((part, partIndex) => {
                     if (part.type === 'text') {
-                      // Render text part using MarkdownRenderer
-                      return <MarkdownRenderer key={`text-${partIndex}`} content={part.text || ''} />;
+                      // Render text part as plain text
+                      return <div key={`text-${partIndex}`} className="whitespace-pre-wrap">{part.text || ''}</div>;
                     } else if (part.type === 'image_url' && part.image_url?.url) {
                       // Render image preview
                       return (
@@ -72,8 +72,8 @@ function MessageList({ messages = [], onToolCallExecute, onRemoveLastMessage }) 
                     return null; // Should not happen with current structure
                   })
                 ) : (
-                  // If content is just a string, render it directly with MarkdownRenderer
-                  <MarkdownRenderer content={message.content || ''} />
+                  // If content is just a string, render it directly as plain text
+                  <div className="whitespace-pre-wrap">{message.content || ''}</div>
                 )}
               </div>
             </div>

@@ -11,7 +11,26 @@ const newLineRegex = /\n/;
 const newLineAtTheEndRegex = /\n$/;
 const codeLanguageRegex = /language-(\w+)/;
 const imageFileExtensionsRegex = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i;
-const components={
+const components = {
+          span: ({ node, children, ...props }) => {
+            // Apply word-wrap styles to KaTeX elements to prevent overflow
+            if (props.className && props.className.includes('katex')) {
+              return (
+                <span 
+                  {...props} 
+                  style={{
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    wordBreak: 'break-all',
+                    ...props.style
+                  }}
+                >
+                  {children}
+                </span>
+              );
+            }
+            return <span {...props}>{children}</span>;
+          },
           // Custom renderer for code blocks to add syntax highlighting
           code({ node, inline, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
@@ -20,7 +39,7 @@ const components={
                 style={oneDark} // Apply the chosen theme
                 language={match[1]}
                 PreTag="div"
-                className="rounded-lg"
+                className="rounded-xl"
                 {...props}
               >
                 {String(children).replace(/\n$/, '')}
@@ -31,45 +50,37 @@ const components={
               </code>
             );
           },
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           h1: ({ node: _, children, ...props }) => (
-            <h1 className="text-3xl font-bold mb-4 mt-6" {...props}>
+            <h1 className="text-3xl font-bold mb-4 mt-10" {...props}>
               {children}
             </h1>
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           h2: ({ node: _, children, ...props }) => (
-            <h2 className="text-2xl font-semibold mb-3 mt-5" {...props}>
+            <h2 className="text-2xl font-semibold mb-3 mt-9" {...props}>
               {children}
             </h2>
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           h3: ({ node: _, children, ...props }) => (
-            <h3 className="text-xl font-medium mb-3 mt-4" {...props}>
+            <h3 className="text-xl font-medium mb-3 mt-8" {...props}>
               {children}
             </h3>
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           h4: ({ node: _, children, ...props }) => (
-            <h4 className="text-lg font-medium mb-2 mt-3" {...props}>
+            <h4 className="text-lg font-medium mb-2 mt-7" {...props}>
               {children}
             </h4>
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           h5: ({ node: _, children, ...props }) => (
-            <h5 className="text-base font-medium mb-2 mt-3" {...props}>
+            <h5 className="text-base font-medium mb-2 mt-7" {...props}>
               {children}
             </h5>
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           h6: ({ node: _, children, ...props }) => (
-            <h6 className="text-sm font-medium mb-1 mt-2" {...props}>
+            <h6 className="text-sm font-medium mb-1 mt-6" {...props}>
               {children}
             </h6>
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           tr: ({ node: _, ...props }) => <tr className="border-b" {...props} />,
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           td: ({ node: _, children, ...props }) => {
             return (
               <td
@@ -80,7 +91,6 @@ const components={
               </td>
             );
           },
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           th: ({ node: _, children, ...props }) => {
             return (
               <th
@@ -91,54 +101,45 @@ const components={
               </th>
             );
           },
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           table: ({ node: _, ...props }) => (
-            <table className="table-auto w-full mb-4" {...props} />
+            <table className="table-auto w-full mb-1" {...props} />
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           thead: ({ node: _, ...props }) => (
             <thead className="bg-gray-100 dark:bg-shallow text-left" {...props} />
           ),
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           tbody: ({ node: _, ...props }) => <tbody {...props} />,
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           ol: ({ node: _, children, ...props }) => {
             return (
               <ol
-                className="ml-5 mb-4 list-decimal"
+                className="ml-0 mb-1 list-decimal"
                 {...props}
               >
                 {children}
               </ol>
             );
           },
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           ul: ({ node: _, children, ...props }) => {
             return (
               <ul
-                className="ml-5 mb-4"
+                className="ml-0 mb-1"
                 {...props}
               >
                 {children}
               </ul>
             );
           },
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          li: ({ node: _, ...props }) => <li className="ml-5" {...props} />,
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+          li: ({ node: _, ...props }) => <li className="ml-10 mb-2" {...props} />,
           p({ children, ...props }) {
             return (
-              <p className="text-left mb-4" {...props}>
+              <p className="text-left mb-3" {...props}>
                 {children}
               </p>
             );
           },
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           img({ src, alt, ...props }) {
             // biome-ignore lint/a11y/useAltText: <explanation>
             return <img src={src} alt={alt} {...props} />;
           },
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           a({ href, children, ...props }) {
             // Check if the href is an image link
             const isImageLink = href && imageFileExtensionsRegex.test(href);
@@ -179,7 +180,7 @@ function MarkdownRenderer({ content }) {
     .replace(/\\\)/g, "$$")
     .replace(/```latex([\s\S]*?)```/g, "$$$$$1$$$$");
   return (
-    <div className="markdown-content">
+    <div className="font-inter">
       <ReactMarkdown
         components={components}
         remarkPlugins={[remarkGfm, remarkMath]} // Enable GitHub Flavored Markdown
