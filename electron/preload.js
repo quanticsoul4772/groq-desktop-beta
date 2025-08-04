@@ -27,6 +27,14 @@ contextBridge.exposeInMainWorld('electron', {
         ipcRenderer.on('chat-stream-tool-calls', (_, data) => callback(data));
         return () => ipcRenderer.removeListener('chat-stream-tool-calls', callback);
       },
+      onReasoning: (callback) => {
+        ipcRenderer.on('chat-stream-reasoning', (_, data) => callback(data));
+        return () => ipcRenderer.removeListener('chat-stream-reasoning', callback);
+      },
+      onToolExecution: (callback) => {
+        ipcRenderer.on('chat-stream-tool-execution', (_, data) => callback(data));
+        return () => ipcRenderer.removeListener('chat-stream-tool-execution', callback);
+      },
       onComplete: (callback) => {
         ipcRenderer.on('chat-stream-complete', (_, data) => callback(data));
         return () => ipcRenderer.removeListener('chat-stream-complete', callback);
@@ -39,6 +47,8 @@ contextBridge.exposeInMainWorld('electron', {
         ipcRenderer.removeAllListeners('chat-stream-start');
         ipcRenderer.removeAllListeners('chat-stream-content');
         ipcRenderer.removeAllListeners('chat-stream-tool-calls');
+        ipcRenderer.removeAllListeners('chat-stream-reasoning');
+        ipcRenderer.removeAllListeners('chat-stream-tool-execution');
         ipcRenderer.removeAllListeners('chat-stream-complete');
         ipcRenderer.removeAllListeners('chat-stream-error');
       }

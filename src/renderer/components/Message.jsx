@@ -2,12 +2,21 @@ import React, { useState } from 'react';
 import ToolCall from './ToolCall';
 
 function Message({ message, children, onToolCallExecute, allMessages, isLastMessage }) {
-  const { role, tool_calls, reasoning, isStreaming } = message;
+  const { role, tool_calls, reasoning, isStreaming, executed_tools, liveReasoning, liveExecutedTools } = message;
   const [showReasoning, setShowReasoning] = useState(false);
+  const [showExecutedTools, setShowExecutedTools] = useState(false);
   const isUser = role === 'user';
-  const hasReasoning = reasoning && !isUser;
+  const hasReasoning = (reasoning || liveReasoning) && !isUser;
+  const hasExecutedTools = (executed_tools?.length > 0 || liveExecutedTools?.length > 0) && !isUser;
   const isStreamingMessage = isStreaming === true;
+  
+  // Get current reasoning and tools (live or final)
+  const currentReasoning = liveReasoning || reasoning;
+  const currentTools = liveExecutedTools?.length > 0 ? liveExecutedTools : executed_tools;
 
+  if (isLastMessage) {
+    console.log("Assistant message:", message.content);
+  }
   // Find tool results for this message's tool calls in the messages array
   const findToolResult = (toolCallId) => {
     if (!allMessages) return null;
@@ -23,10 +32,11 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
   const messageClasses = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
   // Apply background only for user messages
   const bubbleStyle = isUser ? 'bg-gray-200' : ''; // No background for assistant/system
-  const bubbleClasses = `relative px-4 py-3 rounded-lg max-w-xl ${bubbleStyle}`; // Removed group class
+  const bubbleClasses = `relative px-4 py-3 rounded-lg ${isUser ? 'max-w-xl' : 'w-full'} ${bubbleStyle}`; // Full width for assistant
   const wrapperClasses = `message-content-wrapper ${isUser ? 'text-black' : 'text-black'} break-words`; // Keep text white for both, use break-words
 
   const toggleReasoning = () => setShowReasoning(!showReasoning);
+  const toggleExecutedTools = () => setShowExecutedTools(!showExecutedTools);
 
   return (
     <div className={messageClasses}>
@@ -38,10 +48,133 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
             <span className="dot-3"></span>
           </div>
         )}
+
+        {/* Simple dropdowns - always visible when content exists */}
+        {!isUser && (hasReasoning || hasExecutedTools) && (
+          <div className="mb-3 border-b border-gray-300 pb-3 space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {/* Reasoning dropdown - blue */}
+              {hasReasoning && (
+                <button 
+                  onClick={toggleReasoning}
+                  className="flex items-center text-sm px-3 py-1 rounded-md bg-blue-100 hover:bg-blue-200 text-blue-800 transition-colors duration-200"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className={`h-4 w-4 mr-1 transition-transform duration-200 ${showReasoning ? 'rotate-90' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  {isStreamingMessage && liveReasoning ? 'Thinking...' : 'Show reasoning'}
+                  {isStreamingMessage && liveReasoning && (
+                    <svg className="animate-spin ml-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                </button>
+              )}
+              
+              {/* Tool execution dropdown - green */}
+              {hasExecutedTools && (
+                <button 
+                  onClick={toggleExecutedTools}
+                  className="flex items-center text-sm px-3 py-1 rounded-md bg-green-100 hover:bg-green-200 text-green-800 transition-colors duration-200"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className={`h-4 w-4 mr-1 transition-transform duration-200 ${showExecutedTools ? 'rotate-90' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  {isStreamingMessage ? 'Code execution' : `Code execution [${currentTools?.length || 0}]`}
+                  {isStreamingMessage && currentTools?.some(t => !t.output) && (
+                    <svg className="animate-spin ml-2 h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                </button>
+              )}
+            </div>
+            
+            {/* Reasoning content */}
+            {(showReasoning || (isStreamingMessage && liveReasoning)) && currentReasoning && (
+              <div className="p-3 bg-blue-50 rounded-md text-sm border border-blue-200">
+                <pre className="whitespace-pre-wrap break-words text-blue-900">{currentReasoning}</pre>
+              </div>
+            )}
+            
+            {/* Tool execution content */}
+            {(showExecutedTools || (isStreamingMessage && liveExecutedTools?.length > 0)) && currentTools?.length > 0 && (
+              <div className="space-y-2">
+                {currentTools.map((tool, index) => {
+                  const isLive = liveExecutedTools?.length > 0;
+                  return (
+                    <div key={`tool-${tool.index || index}`} className={`p-3 rounded-md text-sm border ${isLive ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                      <div className={`font-semibold mb-2 ${isLive ? 'text-green-800' : 'text-gray-800'}`}>
+                        {tool.type === 'python' ? '🐍 Python Code' : `🔧 ${tool.type || 'Tool'}`}
+                        {isLive ? (
+                          !tool.output ? (
+                            <span className="ml-2 text-green-600">Executing...</span>
+                          ) : (
+                            <span className="ml-2 text-green-600">✓ Complete</span>
+                          )
+                        ) : (
+                          <span className="ml-2 text-green-600">✓ Complete</span>
+                        )}
+                      </div>
+                      
+                      {tool.arguments && (
+                        <div className="mb-2">
+                          <div className={`text-xs mb-1 ${isLive ? 'text-green-700' : 'text-gray-700'}`}>Code:</div>
+                          <pre className={`p-2 rounded overflow-x-auto text-xs ${isLive ? 'bg-green-100 text-green-900' : 'bg-gray-100 text-gray-900'}`}>
+                            {typeof tool.arguments === 'string' ? 
+                              (tool.arguments.startsWith('{') ? 
+                                (() => {
+                                  try {
+                                    return JSON.parse(tool.arguments).code || tool.arguments;
+                                  } catch (e) {
+                                    return tool.arguments;
+                                  }
+                                })() : 
+                                tool.arguments
+                              ) : 
+                              JSON.stringify(tool.arguments, null, 2)
+                            }
+                          </pre>
+                        </div>
+                      )}
+                      
+                      {tool.output && (
+                        <div>
+                          <div className={`text-xs mb-1 ${isLive ? 'text-green-700' : 'text-gray-700'}`}>Output:</div>
+                          <pre className={`bg-white p-2 rounded overflow-x-auto text-xs border ${isLive ? 'text-green-900 border-green-200' : 'text-gray-900 border-gray-200'}`}>
+                            {tool.output}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className={wrapperClasses}>
           {children}
         </div>
         
+        {/* MCP tool calls */}
         {tool_calls && tool_calls.map((toolCall, index) => (
           <ToolCall 
             key={toolCall.id || index} 
@@ -49,36 +182,9 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
             toolResult={findToolResult(toolCall.id)}
           />
         ))}
-
-        {hasReasoning && (
-          <div className="mt-3 border-t border-gray-600 pt-2">
-            <button 
-              onClick={toggleReasoning}
-              className="flex items-center text-sm px-3 py-1 rounded-md bg-gray-600 hover:bg-gray-500 transition-colors duration-200"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className={`h-4 w-4 mr-1 transition-transform duration-200 ${showReasoning ? 'rotate-90' : ''}`} 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              {showReasoning ? 'Hide reasoning' : 'Show reasoning'}
-            </button>
-            
-            {showReasoning && (
-              <div className="mt-2 p-3 bg-gray-800 rounded-md text-sm border border-gray-600">
-                <pre className="whitespace-pre-wrap break-words">{reasoning}</pre>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-export default Message; 
+export default Message;

@@ -180,7 +180,7 @@ function App() {
             }
         } else if (availableModels.length > 0) {
              // If no model saved in settings, but models are available, use the first one
-             effectiveModel = availableModels[0];
+            effectiveModel = availableModels[0];
         }
         // If no model in settings and no available models, effectiveModel remains 'default'
 
@@ -195,7 +195,7 @@ function App() {
           updateServerStatus(mcpToolsResult.tools, settings); // Pass loaded settings
         } else {
            // Handle case where no tools are found initially, but update status
-           updateServerStatus([], settings);
+          updateServerStatus([], settings);
         }
 
         // Set up event listener for MCP server status changes
@@ -204,7 +204,7 @@ function App() {
             setMcpTools(data.tools);
             // Fetch latest settings again when status changes, as they might have been updated
             window.electron.getSettings().then(currentSettings => {
-               updateServerStatus(data.tools, currentSettings);
+              updateServerStatus(data.tools, currentSettings);
             }).catch(err => {
                 console.error("Error fetching settings for status update:", err);
                 // Fallback to updating status without settings info
@@ -311,13 +311,13 @@ function App() {
           // Update UI immediately for executed tool calls
           setMessages(prev => [...prev, resultMsg]);
         } catch (error) {
-           console.error(`Error executing automatically approved tool call '${toolName}':`, error);
-           const errorMsg = {
-               role: 'tool',
-               content: JSON.stringify({ error: `Error executing tool '${toolName}': ${error.message}` }),
-               tool_call_id: toolCall.id
-           };
-           toolResponseMessages.push(errorMsg);
+            console.error(`Error executing automatically approved tool call '${toolName}':`, error);
+            const errorMsg = {
+                role: 'tool',
+                content: JSON.stringify({ error: `Error executing tool '${toolName}': ${error.message}` }),
+                tool_call_id: toolCall.id
+            };
+            toolResponseMessages.push(errorMsg);
            setMessages(prev => [...prev, errorMsg]); // Show error in UI
         }
       } else { // status === 'prompt'
@@ -375,7 +375,10 @@ function App() {
             role: 'assistant',
             content: '',
             tool_calls: undefined,
-            reasoning: undefined
+            reasoning: undefined,
+            executed_tools: undefined,
+            liveReasoning: '',
+            liveExecutedTools: []
         };
 
         // Setup event handlers for streaming
@@ -396,12 +399,60 @@ function App() {
         streamHandler.onToolCalls(({ tool_calls }) => {
             finalAssistantData.tool_calls = tool_calls;
             setMessages(prev => {
-                 const newMessages = [...prev];
-                 const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
-                 if (idx !== -1) {
-                     newMessages[idx] = { ...newMessages[idx], tool_calls: finalAssistantData.tool_calls };
-                 }
-                 return newMessages;
+                const newMessages = [...prev];
+                const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
+                if (idx !== -1) {
+                    newMessages[idx] = { ...newMessages[idx], tool_calls: finalAssistantData.tool_calls };
+                }
+                return newMessages;
+            });
+        });
+
+        // Handle compound-beta reasoning streaming
+        streamHandler.onReasoning(({ reasoning, accumulated }) => {
+            finalAssistantData.liveReasoning = accumulated;
+            setMessages(prev => {
+                const newMessages = [...prev];
+                const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
+                if (idx !== -1) {
+                    newMessages[idx] = { ...newMessages[idx], liveReasoning: accumulated };
+                }
+                return newMessages;
+            });
+        });
+
+        // Handle compound-beta tool execution streaming
+        streamHandler.onToolExecution(({ type, tool }) => {
+            if (type === 'start') {
+                // Add or update tool in live list
+                const updatedLiveTools = [...finalAssistantData.liveExecutedTools];
+                const existingIndex = updatedLiveTools.findIndex(t => t.index === tool.index);
+                
+                if (existingIndex === -1) {
+                    updatedLiveTools.push(tool);
+                } else {
+                    updatedLiveTools[existingIndex] = { ...updatedLiveTools[existingIndex], ...tool };
+                }
+                
+                finalAssistantData.liveExecutedTools = updatedLiveTools;
+            } else if (type === 'complete') {
+                // Update tool with output
+                const updatedLiveTools = [...finalAssistantData.liveExecutedTools];
+                const existingIndex = updatedLiveTools.findIndex(t => t.index === tool.index);
+                
+                if (existingIndex !== -1) {
+                    updatedLiveTools[existingIndex] = tool;
+                    finalAssistantData.liveExecutedTools = updatedLiveTools;
+                }
+            }
+            
+            setMessages(prev => {
+                const newMessages = [...prev];
+                const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
+                if (idx !== -1) {
+                    newMessages[idx] = { ...newMessages[idx], liveExecutedTools: [...finalAssistantData.liveExecutedTools] };
+                }
+                return newMessages;
             });
         });
 
@@ -412,7 +463,11 @@ function App() {
                     role: 'assistant',
                     content: data.content || '',
                     tool_calls: data.tool_calls,
-                    reasoning: data.reasoning
+                    reasoning: data.reasoning,
+                    executed_tools: data.executed_tools,
+                    // Clear live streaming data on completion
+                    liveReasoning: undefined,
+                    liveExecutedTools: undefined
                 };
                 turnAssistantMessage = finalAssistantData; // Store the completed message
 
@@ -422,9 +477,9 @@ function App() {
                     if (idx !== -1) {
                         newMessages[idx] = finalAssistantData; // Replace placeholder
                     } else {
-                         // Should not happen if placeholder logic is correct
-                         console.warn("Streaming placeholder not found for replacement.");
-                         newMessages.push(finalAssistantData);
+                        // Should not happen if placeholder logic is correct
+                        console.warn("Streaming placeholder not found for replacement.");
+                        newMessages.push(finalAssistantData);
                     }
                     return newMessages;
                 });
@@ -436,15 +491,15 @@ function App() {
                 console.log('Error details:', { error });
                 // Replace placeholder with error
                 setMessages(prev => {
-                   const newMessages = [...prev];
-                   const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
-                   const errorMsg = { role: 'assistant', content: `Error: ${error}`, isStreaming: false };
-                   if (idx !== -1) {
-                       newMessages[idx] = errorMsg;
-                   } else {
-                       newMessages.push(errorMsg);
-                   }
-                   return newMessages;
+                    const newMessages = [...prev];
+                    const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
+                    const errorMsg = { role: 'assistant', content: `Error: ${error}`, isStreaming: false };
+                    if (idx !== -1) {
+                        newMessages[idx] = errorMsg;
+                    } else {
+                        newMessages.push(errorMsg);
+                    }
+                    return newMessages;
                 });
                 reject(new Error(error));
             });
@@ -467,30 +522,30 @@ function App() {
                 currentTurnStatus = 'paused'; // Signal pause to the caller
             } else if (toolProcessingStatus === 'completed') {
                  // If tools completed, the caller might loop
-                 currentTurnStatus = 'completed_with_tools';
+                currentTurnStatus = 'completed_with_tools';
             } else { // Handle potential errors from processToolCalls if added
                 currentTurnStatus = 'error';
             }
         } else {
              // No tools, this turn is complete
-             currentTurnStatus = 'completed_no_tools';
+            currentTurnStatus = 'completed_no_tools';
         }
 
     } catch (error) {
       console.error('Error in executeChatTurn:', error);
       // Ensure placeholder is replaced or an error message is added
-       setMessages(prev => {
-           const newMessages = [...prev];
-           const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
-           const errorMsg = { role: 'assistant', content: `Error: ${error.message}`, isStreaming: false };
+      setMessages(prev => {
+          const newMessages = [...prev];
+          const idx = newMessages.findIndex(msg => msg.role === 'assistant' && msg.isStreaming);
+          const errorMsg = { role: 'assistant', content: `Error: ${error.message}`, isStreaming: false };
             if (idx !== -1) {
                 newMessages[idx] = errorMsg;
             } else {
                 // If streaming never started, add the error message
                 newMessages.push(errorMsg);
             }
-           return newMessages;
-       });
+          return newMessages;
+      });
       currentTurnStatus = 'error';
     }
 
@@ -536,36 +591,36 @@ function App() {
                  break; // Exit the loop
             } else if (status === 'error') {
                  // Error occurred, stop the loop
-                 break;
+                  break;
             } else if (status === 'completed_with_tools') {
-                 // Prepare messages for the next turn ONLY if tools were completed
-                 if (assistantMessage && toolResponseMessages.length > 0) {
-                     // Format tool responses for the API
-                     const formattedToolResponses = toolResponseMessages.map(msg => ({
-                         role: 'tool',
-                         content: msg.content, // Ensure this is a string
-                         tool_call_id: msg.tool_call_id
-                     }));
-                     // Append assistant message and tool responses for the next API call
-                     currentApiMessages = [
-                         ...currentApiMessages,
-                         { // Assistant message that included the tool calls
+                  // Prepare messages for the next turn ONLY if tools were completed
+                  if (assistantMessage && toolResponseMessages.length > 0) {
+                      // Format tool responses for the API
+                      const formattedToolResponses = toolResponseMessages.map(msg => ({
+                          role: 'tool',
+                          content: msg.content, // Ensure this is a string
+                          tool_call_id: msg.tool_call_id
+                      }));
+                      // Append assistant message and tool responses for the next API call
+                      currentApiMessages = [
+                          ...currentApiMessages,
+                          { // Assistant message that included the tool calls
                             role: assistantMessage.role,
                             content: assistantMessage.content,
                             tool_calls: assistantMessage.tool_calls
-                         },
-                         ...formattedToolResponses
-                     ];
-                     // Loop continues as conversationStatus is 'completed_with_tools'
-                 } else {
-                     // Should not happen if status is completed_with_tools, but safety break
-                     console.warn("Status 'completed_with_tools' but no assistant message or tool responses found.");
-                     conversationStatus = 'error'; // Treat as error
-                     break;
-                 }
+                          },
+                          ...formattedToolResponses
+                      ];
+                      // Loop continues as conversationStatus is 'completed_with_tools'
+                  } else {
+                      // Should not happen if status is completed_with_tools, but safety break
+                      console.warn("Status 'completed_with_tools' but no assistant message or tool responses found.");
+                      conversationStatus = 'error'; // Treat as error
+                      break;
+                  }
             } else if (status === 'completed_no_tools') {
-                 // Conversation turn finished without tools, stop the loop
-                 break;
+                  // Conversation turn finished without tools, stop the loop
+                  break;
             }
         } // End while loop
 
@@ -584,33 +639,33 @@ function App() {
 
   // --- Placeholder for resuming chat after modal interaction ---
   const resumeChatFlow = async (handledToolResponse) => {
-     if (!pausedChatState) {
-         console.error("Attempted to resume chat flow without paused state.");
-         setLoading(false); // Ensure loading indicator stops
-         return;
-     }
+      if (!pausedChatState) {
+          console.error("Attempted to resume chat flow without paused state.");
+          setLoading(false); // Ensure loading indicator stops
+          return;
+      }
 
-     const { currentMessages, finalAssistantMessage, accumulatedResponses } = pausedChatState;
-     setPausedChatState(null); // Clear the paused state
+      const { currentMessages, finalAssistantMessage, accumulatedResponses } = pausedChatState;
+      setPausedChatState(null); // Clear the paused state
 
-     const allResponsesForTurn = [...accumulatedResponses, handledToolResponse];
+      const allResponsesForTurn = [...accumulatedResponses, handledToolResponse];
 
-     // Find the index of the tool that caused the pause
-     const pausedToolIndex = finalAssistantMessage.tool_calls.findIndex(
-         tc => tc.id === handledToolResponse.tool_call_id // Match based on ID
-     );
+      // Find the index of the tool that caused the pause
+      const pausedToolIndex = finalAssistantMessage.tool_calls.findIndex(
+          tc => tc.id === handledToolResponse.tool_call_id // Match based on ID
+      );
 
-     if (pausedToolIndex === -1) {
+      if (pausedToolIndex === -1) {
           console.error("Could not find the paused tool call in the original message.");
           setLoading(false);
           return; // Cannot proceed
-     }
+      }
 
-     const remainingTools = finalAssistantMessage.tool_calls.slice(pausedToolIndex + 1);
-     let needsPauseAgain = false;
+      const remainingTools = finalAssistantMessage.tool_calls.slice(pausedToolIndex + 1);
+      let needsPauseAgain = false;
 
-     // Process remaining tools
-     for (const nextToolCall of remainingTools) {
+      // Process remaining tools
+      for (const nextToolCall of remainingTools) {
         const toolName = nextToolCall.function.name;
         const approvalStatus = getToolApprovalStatus(toolName);
 
@@ -638,12 +693,12 @@ function App() {
             needsPauseAgain = true;
             break; // Stop processing remaining tools
         }
-     }
+      }
 
-     if (needsPauseAgain) {
+      if (needsPauseAgain) {
         // Loading state remains true, waiting for the next modal interaction
         console.log("Chat flow paused again for the next tool.");
-     } else {
+      } else {
         // All remaining tools were processed. Prepare for the next API call.
         console.log("All tools for the turn processed. Continuing conversation.");
         setLoading(true); // Show loading for the next API call
@@ -669,67 +724,67 @@ function App() {
         // We need to handle the loading state correctly after this returns
         try {
              // Start the next turn
-             const { status: nextTurnStatus } = await executeChatTurn(nextApiMessages);
-             // If the *next* turn also pauses, loading state remains true
-             if (nextTurnStatus !== 'paused') {
-                 setLoading(false);
-             }
+              const { status: nextTurnStatus } = await executeChatTurn(nextApiMessages);
+              // If the *next* turn also pauses, loading state remains true
+              if (nextTurnStatus !== 'paused') {
+                  setLoading(false);
+              }
         } catch (error) {
             console.error("Error during resumed chat turn:", error);
             setMessages(prev => [...prev, { role: 'assistant', content: `Error after resuming: ${error.message}` }]);
             setLoading(false); // Stop loading on error
         }
-     }
+      }
   };
 
   // --- Placeholder for handling modal choice ---
   const handleToolApproval = async (choice, toolCall) => {
-     if (!toolCall || !toolCall.id) {
-         console.error("handleToolApproval called with invalid toolCall:", toolCall);
-         return;
-     }
-     console.log(`User choice for tool '${toolCall.function.name}': ${choice}`);
+      if (!toolCall || !toolCall.id) {
+          console.error("handleToolApproval called with invalid toolCall:", toolCall);
+          return;
+      }
+      console.log(`User choice for tool '${toolCall.function.name}': ${choice}`);
 
-     // Update localStorage based on choice
-     setToolApprovalStatus(toolCall.function.name, choice);
+      // Update localStorage based on choice
+      setToolApprovalStatus(toolCall.function.name, choice);
 
-     // Clear the pending call *before* executing/resuming
-     setPendingApprovalCall(null);
+      // Clear the pending call *before* executing/resuming
+      setPendingApprovalCall(null);
 
-     let handledToolResponse;
+      let handledToolResponse;
 
-     if (choice === 'deny') {
-         handledToolResponse = {
-             role: 'tool',
-             content: JSON.stringify({ error: 'Tool execution denied by user.' }),
-             tool_call_id: toolCall.id
-         };
-         setMessages(prev => [...prev, handledToolResponse]); // Show denial in UI
-         // Resume processing potential subsequent tools
-         await resumeChatFlow(handledToolResponse);
-     } else { // 'once', 'always', 'yolo' -> Execute the tool
-         setLoading(true); // Show loading specifically for tool execution phase
-         try {
-             console.log(`Executing tool '${toolCall.function.name}' after user approval...`);
-             handledToolResponse = await executeToolCall(toolCall);
-             setMessages(prev => [...prev, handledToolResponse]); // Show result in UI
-             // Resume processing potential subsequent tools
-             await resumeChatFlow(handledToolResponse);
-         } catch (error) {
-             console.error(`Error executing approved tool call '${toolCall.function.name}':`, error);
-             handledToolResponse = {
-                 role: 'tool',
-                 content: JSON.stringify({ error: `Error executing tool '${toolCall.function.name}' after approval: ${error.message}` }),
-                 tool_call_id: toolCall.id
-             };
-             setMessages(prev => [...prev, handledToolResponse]); // Show error in UI
+      if (choice === 'deny') {
+          handledToolResponse = {
+              role: 'tool',
+              content: JSON.stringify({ error: 'Tool execution denied by user.' }),
+              tool_call_id: toolCall.id
+          };
+          setMessages(prev => [...prev, handledToolResponse]); // Show denial in UI
+          // Resume processing potential subsequent tools
+          await resumeChatFlow(handledToolResponse);
+      } else { // 'once', 'always', 'yolo' -> Execute the tool
+          setLoading(true); // Show loading specifically for tool execution phase
+          try {
+              console.log(`Executing tool '${toolCall.function.name}' after user approval...`);
+              handledToolResponse = await executeToolCall(toolCall);
+              setMessages(prev => [...prev, handledToolResponse]); // Show result in UI
+              // Resume processing potential subsequent tools
+              await resumeChatFlow(handledToolResponse);
+          } catch (error) {
+              console.error(`Error executing approved tool call '${toolCall.function.name}':`, error);
+              handledToolResponse = {
+                  role: 'tool',
+                  content: JSON.stringify({ error: `Error executing tool '${toolCall.function.name}' after approval: ${error.message}` }),
+                  tool_call_id: toolCall.id
+              };
+              setMessages(prev => [...prev, handledToolResponse]); // Show error in UI
               // Still try to resume processing subsequent tools even if this one failed
-             await resumeChatFlow(handledToolResponse);
-         } finally {
+              await resumeChatFlow(handledToolResponse);
+          } finally {
               // Loading state will be handled by resumeChatFlow or set to false if it errors/completes fully
               // setLoading(false); // Don't set false here, resumeChatFlow handles it
-         }
-     }
+          }
+      }
   };
 
   // Disconnect from an MCP server
@@ -930,15 +985,15 @@ function App() {
         <ToolsPanel
           tools={mcpTools}
           onClose={() => setIsToolsPanelOpen(false)}
-                     onDisconnectServer={disconnectMcpServer}
-           onReconnectServer={reconnectMcpServer}
+                    onDisconnectServer={disconnectMcpServer}
+          onReconnectServer={reconnectMcpServer}
         />
       )}
 
       {pendingApprovalCall && (
         <ToolApprovalModal
           toolCall={pendingApprovalCall}
-                     onApprove={handleToolApproval}
+                    onApprove={handleToolApproval}
         />
       )}
     </div>
