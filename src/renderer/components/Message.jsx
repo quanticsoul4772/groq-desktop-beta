@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ToolCall from './ToolCall';
+import MarkdownRenderer from './MarkdownRenderer';
 
 function Message({ message, children, onToolCallExecute, allMessages, isLastMessage }) {
   const { role, tool_calls, reasoning, isStreaming, executed_tools, liveReasoning, liveExecutedTools } = message;
@@ -14,9 +15,7 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
   const currentReasoning = liveReasoning || reasoning;
   const currentTools = liveExecutedTools?.length > 0 ? liveExecutedTools : executed_tools;
 
-  if (isLastMessage) {
-    console.log("Assistant message:", message.content);
-  }
+
   // Find tool results for this message's tool calls in the messages array
   const findToolResult = (toolCallId) => {
     if (!allMessages) return null;
@@ -108,8 +107,16 @@ function Message({ message, children, onToolCallExecute, allMessages, isLastMess
             
             {/* Reasoning content */}
             {(showReasoning || (isStreamingMessage && liveReasoning)) && currentReasoning && (
-              <div className="p-3 bg-blue-50 rounded-md text-sm border border-blue-200">
-                <pre className="whitespace-pre-wrap break-words text-blue-900">{currentReasoning}</pre>
+              <div className="p-3 bg-blue-50 rounded-md text-sm ">
+                <div className="whitespace-pre-wrap break-words text-blue-900 leading-tight">
+                  <MarkdownRenderer
+                    content={currentReasoning
+                      .replace(/<tool[^>]*>([\s\S]*?)<\/tool>/gi, '**Tool call:**\n```$1```')
+                      .replace(/<output[^>]*>([\s\S]*?)<\/output>/gi, '**Tool output:**\n $1')
+                      .replace(/<think[^>]*>([\s\S]*?)<\/think>/gi, '### **Thought process:** $1')
+                    }
+                  />
+                </div>
               </div>
             )}
             
