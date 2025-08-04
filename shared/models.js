@@ -15,6 +15,10 @@ const MODEL_CONTEXT_SIZES = {
     context: 131072,
     vision_supported: true,
   },
+  "compound-beta": {
+    context: 131072,
+    vision_supported: false,
+  },
   "qwen/qwen3-32b": {
     context: 131072,
     vision_supported: false,
