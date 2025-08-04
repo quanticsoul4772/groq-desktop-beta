@@ -160,6 +160,8 @@ function Settings() {
   const addEnvVar = () => {
     if (!newEnvVar.key) return;
     
+    console.log('Adding environment variable:', newEnvVar.key, '=', newEnvVar.value);
+    
     setNewMcpServer(prev => ({
       ...prev,
       env: {
@@ -416,6 +418,8 @@ function Settings() {
       }
     }
 
+    console.log('Saving MCP server:', newMcpServer.id, 'with config:', serverConfig);
+    
     // Update settings with new/updated MCP server
     const updatedSettings = {
       ...settings,
@@ -947,12 +951,75 @@ function Settings() {
                     </div>
                   )}
 
+                  {/* Environment Variables Section */}
+                  {newMcpServer.transport === 'stdio' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Environment Variables</Label>
+                        <div className="mt-2 space-y-2">
+                          {Object.entries(newMcpServer.env || {}).map(([key, value]) => (
+                            <div key={key} className="flex items-center space-x-2">
+                              <div className="flex-1 grid grid-cols-2 gap-2">
+                                <Input value={key} disabled className="bg-muted" />
+                                <Input 
+                                  value={
+                                    key.toLowerCase().includes('key') || 
+                                    key.toLowerCase().includes('token') || 
+                                    key.toLowerCase().includes('secret')
+                                      ? '*'.repeat(key.length)
+                                      : (typeof value === 'string' && value.length > 30 ? `${value.substring(0, 27)}...` : value)
+                                  } 
+                                  disabled 
+                                  className="bg-muted" 
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeEnvVar(key)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              name="key"
+                              value={newEnvVar.key}
+                              onChange={handleEnvVarChange}
+                              placeholder="Variable name"
+                              className="flex-1"
+                            />
+                            <Input
+                              name="value"
+                              value={newEnvVar.value}
+                              onChange={handleEnvVarChange}
+                              placeholder="Variable value"
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={addEnvVar}
+                              disabled={!newEnvVar.key}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex justify-end space-x-2">
                     <Button
                       variant="outline"
                       onClick={() => {
                         setNewMcpServer({
-                          id: '', transport: 'stdio', command: '', args: '', env: {}, url: ''
+                          id: '', transport: 'stdio', command: '', args: '', env: {}
                         });
                         setJsonInput('');
                         setJsonError(null);

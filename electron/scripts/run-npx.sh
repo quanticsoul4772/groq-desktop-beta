@@ -20,4 +20,4 @@ if [ -z "$NODE_PATH" ]; then
 fi
 
 # Run npx with the arguments passed to this script
-$NODE_PATH $(which npx) "$@" 
+npx "$@" 
