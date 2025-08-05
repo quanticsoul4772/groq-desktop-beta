@@ -21,7 +21,9 @@ function loadSettings() {
             customSystemPrompt: '',
             popupEnabled: true,
             customCompletionUrl: '',
-            toolOutputLimit: 8000
+            toolOutputLimit: 8000,
+            customApiBaseUrl: '',
+            customModels: {}
         };
     }
     const userDataPath = appInstance.getPath('userData');
@@ -36,7 +38,9 @@ function loadSettings() {
         customSystemPrompt: '',
         popupEnabled: true,
         customCompletionUrl: '',
-        toolOutputLimit: 8000
+        toolOutputLimit: 8000,
+        customApiBaseUrl: '',
+        customModels: {}
     };
 
     try {
@@ -73,6 +77,8 @@ function loadSettings() {
             }
             settings.customCompletionUrl = settings.customCompletionUrl || defaultSettings.customCompletionUrl;
             settings.toolOutputLimit = settings.toolOutputLimit ?? defaultSettings.toolOutputLimit;
+            settings.customApiBaseUrl = settings.customApiBaseUrl || defaultSettings.customApiBaseUrl;
+            settings.customModels = settings.customModels || defaultSettings.customModels;
 
             // Optional: Persist the potentially updated settings back to file if defaults were applied
             // fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
