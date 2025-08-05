@@ -373,15 +373,24 @@ async function connectMcpServerProcess(serverId, connectionDetails, authProvider
 
 // Function to connect to all configured MCP servers from settings
 async function connectConfiguredMcpServers() {
+    console.log('[MCP AUTO-CONNECT] Starting auto-connection process...');
+    
     if (!loadSettingsFunc || !resolveCommandPathFunc) {
         console.error("MCP Manager not fully initialized. Cannot connect configured servers.");
         return;
     }
   try {
+    console.log('[MCP AUTO-CONNECT] Loading settings...');
     const settings = loadSettingsFunc();
+    
+    console.log('[MCP AUTO-CONNECT] Settings loaded:', {
+        hasApiKey: !!(settings.GROQ_API_KEY && settings.GROQ_API_KEY !== "<replace me>"),
+        mcpServersCount: Object.keys(settings.mcpServers || {}).length,
+        disabledCount: (settings.disabledMcpServers || []).length
+    });
 
     if (!settings.mcpServers || Object.keys(settings.mcpServers).length === 0) {
-      console.log('No MCP servers configured, skipping auto-connections.');
+      console.log('[MCP AUTO-CONNECT] No MCP servers configured, skipping auto-connections.');
       return;
     }
 
@@ -393,40 +402,51 @@ async function connectConfiguredMcpServers() {
     const disabledCount = disabledServers.length;
     const enabledCount = serverConfigs.length;
 
-    console.log(`Found ${totalCount} MCP servers. Connecting to ${enabledCount} enabled (${disabledCount} disabled)...`);
-    if (enabledCount === 0) return;
+    console.log(`[MCP AUTO-CONNECT] Found ${totalCount} MCP servers. Connecting to ${enabledCount} enabled (${disabledCount} disabled)...`);
+    console.log('[MCP AUTO-CONNECT] Enabled servers:', serverConfigs.map(([id]) => id));
+    console.log('[MCP AUTO-CONNECT] Disabled servers:', disabledServers);
+    
+    if (enabledCount === 0) {
+        console.log('[MCP AUTO-CONNECT] No enabled servers to connect.');
+        return;
+    }
 
     let successCount = 0;
     let failCount = 0;
 
     const connectionPromises = serverConfigs.map(async ([serverId, serverConfig]) => {
       try {
+        console.log(`[MCP AUTO-CONNECT] Attempting to connect ${serverId}...`);
         const transportType = serverConfig.transport === 'sse' ? 'sse' :
                               serverConfig.transport === 'streamableHttp' ? 'streamableHttp' : 'stdio';
         let connectionDetails = { transport: transportType };
 
+        console.log(`[MCP AUTO-CONNECT] ${serverId} transport type: ${transportType}`);
+
         if (transportType === 'sse' || transportType === 'streamableHttp') {
             if (!serverConfig.url) throw new Error(`Missing 'url' for ${transportType.toUpperCase()} server ${serverId}.`);
             try { new URL(serverConfig.url); connectionDetails.url = serverConfig.url; } catch (e) { throw new Error(`Invalid 'url' for ${transportType.toUpperCase()} ${serverId}: ${e.message}`); }
+            console.log(`[MCP AUTO-CONNECT] ${serverId} URL: ${serverConfig.url}`);
         } else { // stdio
             if (!serverConfig.command) throw new Error(`Missing 'command' for stdio server ${serverId}.`);
             connectionDetails.command = resolveCommandPathFunc(serverConfig.command);
             connectionDetails.args = serverConfig.args || [];
             connectionDetails.env = serverConfig.env || {};
+            console.log(`[MCP AUTO-CONNECT] ${serverId} command: ${connectionDetails.command} ${connectionDetails.args.join(' ')}`);
         }
 
         await connectMcpServerProcess(serverId, connectionDetails);
-        console.log(`Successfully connected to MCP server: ${serverId}`);
+        console.log(`[MCP AUTO-CONNECT] ✅ Successfully connected to MCP server: ${serverId}`);
         return { status: 'fulfilled', serverId };
       } catch (error) {
          if (error instanceof AuthorizationRequiredError) {
-             console.warn(`[${serverId}] Auto-connect failed due to required authorization. Manual connection/authorization needed.`);
+             console.warn(`[MCP AUTO-CONNECT] ⚠️ [${serverId}] Auto-connect failed due to required authorization. Manual connection/authorization needed.`);
              // Don't count as a hard failure, but log appropriately. User needs to intervene.
              // We could potentially trigger the auth flow *here* as well, but it might spam the user
              // if multiple servers require auth on startup. Let's require manual connection for now.
              return { status: 'rejected', serverId, reason: 'Authorization Required' };
          } else {
-             console.error(`Failed auto-connect ${serverId}:`, error.message || error);
+             console.error(`[MCP AUTO-CONNECT] ❌ Failed auto-connect ${serverId}:`, error.message || error);
              return { status: 'rejected', serverId, reason: error.message || error };
          }
       }
@@ -437,10 +457,19 @@ async function connectConfiguredMcpServers() {
         if (result.status === 'fulfilled') successCount++;
         else failCount++;
     });
-    console.log(`MCP auto-connection summary: ${successCount} succeeded, ${failCount} failed.`);
+    console.log(`[MCP AUTO-CONNECT] 📊 Summary: ${successCount} succeeded, ${failCount} failed.`);
+    
+    if (failCount > 0) {
+        console.log('[MCP AUTO-CONNECT] Failed connections:');
+        results.forEach(result => {
+            if (result.status === 'rejected') {
+                console.log(`  - ${result.value.serverId}: ${result.value.reason}`);
+            }
+        });
+    }
 
   } catch (error) {
-    console.error('Error during connectConfiguredMcpServers:', error);
+    console.error('[MCP AUTO-CONNECT] ❌ Critical error during connectConfiguredMcpServers:', error);
   }
 }
 

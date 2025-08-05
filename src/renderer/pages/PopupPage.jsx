@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ImagePlus, Hammer, X, FileText, Send, NotebookPen } from 'lucide-react';
+import { ImagePlus, Hammer, X, FileText, Send, NotebookPen, ChevronDown, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Textarea } from '../components/ui/textarea';
@@ -20,6 +20,67 @@ const ContextPill = ({ title, onRemove }) => (
     </Button>
   </Badge>
 );
+
+const CustomModelSelector = ({ selectedModel, models, onModelChange, isCompact = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const getDisplayName = (model) => {
+    if (isCompact) {
+      // For compact view, show a shortened version
+      const parts = model.split('/');
+      return parts[parts.length - 1].split('-').slice(0, 2).join('-');
+    }
+    return model;
+  };
+
+  return (
+    <div className="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "text-xs border-border/50 bg-background/50 hover:bg-background/70 justify-between",
+          isCompact ? "h-5 w-32 px-2" : "h-6 w-36"
+        )}
+      >
+        <span className="truncate">{getDisplayName(selectedModel)}</span>
+        <ChevronDown size={12} className="ml-1 shrink-0" />
+      </Button>
+      
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+            style={{ WebkitAppRegion: 'no-drag' }}
+          />
+          
+          {/* Dropdown */}
+          <div className={cn(
+            "absolute z-50 mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto",
+            isCompact ? "w-64 right-0" : "w-64 left-0"
+          )}>
+            {models.map((model) => (
+              <button
+                key={model}
+                onClick={() => {
+                  onModelChange(model);
+                  setIsOpen(false);
+                }}
+                className="w-full px-3 py-2 text-xs text-left hover:bg-accent hover:text-accent-foreground flex items-center justify-between"
+              >
+                <span className="truncate">{model}</span>
+                {selectedModel === model && <Check size={12} className="ml-2 shrink-0" />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const PopupPage = () => {
   const [context, setContext] = useState(null);
@@ -132,6 +193,24 @@ const PopupPage = () => {
       }
     } catch (error) {
       console.error('Error initializing popup:', error);
+    }
+  };
+
+  const handleModelChange = async (newModel) => {
+    setSelectedModel(newModel);
+    
+    try {
+      // Update vision support based on the new model
+      const modelConfigs = await window.electron.getModelConfigs();
+      const modelInfo = modelConfigs[newModel];
+      setVisionSupported(modelInfo?.vision_supported || false);
+      
+      // Clear any uploaded files if the new model doesn't support vision
+      if (!(modelInfo?.vision_supported || false)) {
+        setFiles([]);
+      }
+    } catch (error) {
+      console.error('Error updating model:', error);
     }
   };
 
@@ -466,9 +545,19 @@ const PopupPage = () => {
         <>
           {/* Header - Only shows when expanded */}
           <div className="px-4 pt-3 pb-2 flex justify-between items-center border-b border-border/30 sticky top-0 z-50 bg-background/95 backdrop-blur-sm" style={{ WebkitAppRegion: 'drag' }}>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-xs font-medium text-foreground">Groq Chat</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-xs font-medium text-foreground">Groq Chat</span>
+              </div>
+              {/* Model Selector */}
+              <div style={{ WebkitAppRegion: 'no-drag' }}>
+                <CustomModelSelector 
+                  selectedModel={selectedModel}
+                  models={models}
+                  onModelChange={handleModelChange}
+                />
+              </div>
             </div>
             <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" 
@@ -505,22 +594,36 @@ const PopupPage = () => {
         "flex-1 flex items-center rounded-3xl": !isExpanded,
       })}>
         <div className="p-4 w-full space-y-3">
+          {/* Header with Logo and Model Selector - Always visible */}
+          <div className="flex items-center justify-between h-4 mb-2">
+            <div className="flex items-center gap-2">
+              <img 
+                src="./groqLogo.png" 
+                alt="Groq Logo" 
+                className="h-4 w-auto"
+              />
+            </div>
+            {/* Compact Model Selector - Always visible when not expanded */}
+            {!isExpanded && (
+              <div style={{ WebkitAppRegion: 'no-drag' }}>
+                <CustomModelSelector 
+                  selectedModel={selectedModel}
+                  models={models}
+                  onModelChange={handleModelChange}
+                  isCompact={true}
+                />
+              </div>
+            )}
+          </div>
+
           {/* Context Pill */}
-          {context && showContext ? (
-            <div className="flex" style={{ WebkitAppRegion: 'no-drag' }}>
+          {context && showContext && (
+            <div className="flex mb-2" style={{ WebkitAppRegion: 'no-drag' }}>
               <ContextPill 
                 title={context.title || 'Captured Context'} 
                 onRemove={() => setShowContext(false)}
               />
             </div>
-          ) : (
-            <div className="flex items-center h-4 gap-2">
-            <img 
-                src="./groqLogo.png" 
-                alt="Groq Logo" 
-                className="h-4 w-auto"
-              />
-          </div>
           )}
           
           {/* File Previews */}

@@ -107,6 +107,7 @@ function initializeSettingsHandlers(ipcMain, app) {
     const userDataPath = appInstance.getPath('userData');
     const settingsPath = path.join(userDataPath, 'settings.json');
     console.log('SettingsManager Initialized. Settings file location:', settingsPath);
+    console.log('Settings file exists:', fs.existsSync(settingsPath));
 
     // Handler for getting settings
     ipcMain.handle('get-settings', async () => {

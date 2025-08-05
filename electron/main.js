@@ -278,19 +278,19 @@ app.whenReady().then(async () => {
     const { discoveredTools, mcpClients } = mcpManager.getMcpState(); // Use module object
     return toolHandler.handleExecuteToolCall(event, toolCall, discoveredTools, mcpClients, currentSettings);
   });
+  console.log("[Main Init] execute-tool-call registered successfully");
 
-  // Handler for getting model configurations
-  ipcMain.handle('get-model-configs', async () => {
-      // Return a copy to prevent accidental modification
-      return JSON.parse(JSON.stringify(modelContextSizes));
-  });
+  // Model configs handler already registered above during early initialization
+  console.log("[Main Init] Continuing with remaining handlers...");
 
   // --- Context Sharing IPC Handlers (Legacy - for URL/CLI context) ---
+  console.log("[Main Init] Registering context handlers...");
   ipcMain.handle('get-pending-context', async () => {
     const context = pendingContext;
     pendingContext = null; // Clear after retrieval
     return context;
   });
+  console.log("[Main Init] get-pending-context registered");
 
   ipcMain.handle('clear-context', async () => {
     pendingContext = null;
@@ -330,13 +330,10 @@ app.whenReady().then(async () => {
     return popupWindowManager ? popupWindowManager.isOpen() : false;
   });
 
-  ipcMain.handle('resize-popup', (event, { width, height, resizable }) => {
-    if (popupWindowManager) {
-      popupWindowManager.resizePopup(width, height, resizable);
-    }
-  });
+  // resize-popup handler already registered above during early initialization
 
   // --- Auth IPC Handler ---
+  console.log("[Main Init] Registering auth handler...");
   ipcMain.handle('start-mcp-auth-flow', async (event, { serverId, serverUrl }) => {
       if (!serverId || !serverUrl) {
           throw new Error("Missing serverId or serverUrl for start-mcp-auth-flow");
@@ -352,7 +349,9 @@ app.whenReady().then(async () => {
   });
 
   // --- Post-initialization Tasks --- //
+  console.log("Setting up MCP auto-connection timeout...");
   setTimeout(() => {
+      console.log("Triggering MCP auto-connection...");
       mcpManager.connectConfiguredMcpServers(); // Use module object
   }, 1000);
 

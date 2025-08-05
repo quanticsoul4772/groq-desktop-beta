@@ -3,6 +3,7 @@ import LogViewerModal from './LogViewerModal';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import Switch from './ui/Switch';
 import { cn } from '../lib/utils';
 
 function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer }) {
@@ -12,6 +13,7 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
   const [authRequiredServers, setAuthRequiredServers] = useState({});
   const [viewingLogsForServer, setViewingLogsForServer] = useState(null);
   const [actionInProgress, setActionInProgress] = useState(null);
+  const [disabledServers, setDisabledServers] = useState([]);
 
   useEffect(() => {
     const loadConfiguredServers = async () => {
@@ -36,6 +38,9 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
             };
           });
           setConfiguredServers(servers);
+
+          // Load disabled servers list
+          setDisabledServers(settings.disabledMcpServers || []);
 
           // Determine which servers are currently connected
           const statuses = {};
@@ -177,6 +182,38 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
     }
   };
 
+  const handleToggleAutoStart = async (serverId, enabled) => {
+    try {
+      const settings = await window.electron.getSettings();
+      let updatedDisabledServers = [...(settings.disabledMcpServers || [])];
+      
+      if (enabled) {
+        // Remove from disabled list (enable auto-start)
+        updatedDisabledServers = updatedDisabledServers.filter(id => id !== serverId);
+      } else {
+        // Add to disabled list (disable auto-start)
+        if (!updatedDisabledServers.includes(serverId)) {
+          updatedDisabledServers.push(serverId);
+        }
+      }
+      
+      const updatedSettings = {
+        ...settings,
+        disabledMcpServers: updatedDisabledServers
+      };
+      
+      const result = await window.electron.saveSettings(updatedSettings);
+      if (result.success) {
+        setDisabledServers(updatedDisabledServers);
+        console.log(`Auto-start ${enabled ? 'enabled' : 'disabled'} for server ${serverId}`);
+      } else {
+        console.error('Failed to save auto-start setting:', result.error);
+      }
+    } catch (error) {
+      console.error('Error toggling auto-start:', error);
+    }
+  };
+
   // Group tools by server
   const toolsByServer = (tools || []).reduce((acc, tool) => {
     const serverId = tool.serverId || 'unknown';
@@ -232,6 +269,14 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                           <Badge variant={serverStatuses[server.id] === 'connected' ? 'default' : 'secondary'}>
                             {serverStatuses[server.id] === 'connected' ? 'Connected' : 'Disconnected'}
                           </Badge>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground">Auto-start:</span>
+                            <Switch
+                              checked={!disabledServers.includes(server.id)}
+                              onChange={() => handleToggleAutoStart(server.id, disabledServers.includes(server.id))}
+                              id={`autostart-${server.id}`}
+                            />
+                          </div>
                         </div>
                         <div className="space-y-1 text-sm text-muted-foreground">
                           {server.transport === 'sse' ? (
@@ -303,8 +348,8 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                 </CardContent>
               </Card>
               <p className="text-xs text-muted-foreground">
-                These servers are automatically started when the application launches.
-                You can manage them in the settings.
+                Toggle auto-start to control which servers connect automatically when the application launches.
+                You can also manage server configurations in settings.
               </p>
             </div>
           )}
