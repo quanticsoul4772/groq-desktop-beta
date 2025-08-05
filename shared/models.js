@@ -3,6 +3,14 @@ const MODEL_CONTEXT_SIZES = {
     context: 8192,
     vision_supported: false,
   },
+  "openai/gpt-oss-20b": {
+    context: 131072,
+    vision_supported: false,
+  },
+  "openai/gpt-oss-120b": {
+    context: 131072,
+    vision_supported: false,
+  },
   "moonshotai/kimi-k2-instruct": {
     context: 131072,
     vision_supported: true,
