@@ -13,7 +13,7 @@ function determineModel(model, settings, modelContextSizes) {
     return { modelToUse, modelInfo };
 }
 
-function checkVisionSupport(messages, modelInfo, modelToUse) {
+function checkVisionSupport(messages, modelInfo, modelToUse, event) {
     const hasImages = messages.some(msg =>
         msg.role === 'user' &&
         Array.isArray(msg.content) &&
@@ -23,12 +23,13 @@ function checkVisionSupport(messages, modelInfo, modelToUse) {
     if (hasImages && !modelInfo.vision_supported) {
         console.warn(`Attempting to use images with non-vision model: ${modelToUse}`);
         event.sender.send('chat-stream-error', { error: `The selected model (${modelToUse}) does not support image inputs. Please select a vision-capable model.` });
-        return;
+        return false; // Return false to indicate vision check failed
     }
+    
+    return true; // Return true to indicate vision check passed
+}
 
-    // Initialize Groq SDK
-    const groq = new Groq({ apiKey: settings.GROQ_API_KEY });
-
+function prepareTools(discoveredTools) {
     // Prepare tools for the API call
     const tools = (discoveredTools || []).map(tool => ({
         type: "function",
@@ -39,16 +40,18 @@ function checkVisionSupport(messages, modelInfo, modelToUse) {
         }
     }));
     console.log(`Prepared ${tools.length} tools for the API call.`);
+    return tools;
+}
 
+function cleanMessages(messages) {
     // Clean and prepare messages for the API
     // 1. Remove internal fields like 'reasoning', 'isStreaming'
     // 2. Ensure correct content format (user: array, assistant: string, tool: string)
-    const cleanedMessages = messages.map(msg => {
+    return messages.map(msg => {
         // Create a clean copy, then delete unwanted properties
         const cleanMsg = { ...msg };
         delete cleanMsg.reasoning;
         delete cleanMsg.isStreaming;
-        let finalMsg = { ...cleanMsg };
 
         // Ensure user content is array format for vision support
         if (cleanMsg.role === 'user') {
@@ -280,7 +283,12 @@ async function handleChatStream(event, messages, model, settings, modelContextSi
     try {
         validateApiKey(settings);
         const { modelToUse, modelInfo } = determineModel(model, settings, modelContextSizes);
-        checkVisionSupport(messages, modelInfo, modelToUse);
+        const visionCheckPassed = checkVisionSupport(messages, modelInfo, modelToUse, event);
+        
+        // If vision check failed, return early
+        if (!visionCheckPassed) {
+            return;
+        }
 
         const groq = new Groq({ apiKey: settings.GROQ_API_KEY });
         const tools = prepareTools(discoveredTools);
