@@ -61,15 +61,15 @@ function loadSettings() {
                 console.log('Using GROQ_API_KEY from environment variable');
             } else {
                 // Explicitly check and apply defaults for potentially missing/undefined fields
-                settings.GROQ_API_KEY = settings.GROQ_API_KEY || defaultSettings.GROQ_API_KEY;
+                settings.GROQ_API_KEY = settings.GROQ_API_KEY ?? defaultSettings.GROQ_API_KEY;
             }
 
-            settings.model = settings.model || defaultSettings.model;
+            settings.model = settings.model ?? defaultSettings.model;
             settings.temperature = settings.temperature ?? defaultSettings.temperature; // Use nullish coalescing
             settings.top_p = settings.top_p ?? defaultSettings.top_p;
-            settings.mcpServers = settings.mcpServers || defaultSettings.mcpServers;
-            settings.disabledMcpServers = settings.disabledMcpServers || defaultSettings.disabledMcpServers;
-            settings.customSystemPrompt = settings.customSystemPrompt || defaultSettings.customSystemPrompt;
+            settings.mcpServers = settings.mcpServers ?? defaultSettings.mcpServers;
+            settings.disabledMcpServers = settings.disabledMcpServers ?? defaultSettings.disabledMcpServers;
+            settings.customSystemPrompt = settings.customSystemPrompt ?? defaultSettings.customSystemPrompt;
             settings.popupEnabled = settings.popupEnabled ?? defaultSettings.popupEnabled;
 
             // Log API key status for debugging (without revealing the actual key)
@@ -79,11 +79,11 @@ function loadSettings() {
             } else {
                 console.warn('GROQ_API_KEY not configured - autocomplete will not work');
             }
-            settings.customCompletionUrl = settings.customCompletionUrl || defaultSettings.customCompletionUrl;
+            settings.customCompletionUrl = settings.customCompletionUrl ?? defaultSettings.customCompletionUrl;
             settings.toolOutputLimit = settings.toolOutputLimit ?? defaultSettings.toolOutputLimit;
-            settings.customApiBaseUrl = settings.customApiBaseUrl || defaultSettings.customApiBaseUrl;
-            settings.customModels = settings.customModels || defaultSettings.customModels;
-            settings.theme = settings.theme || defaultSettings.theme;
+            settings.customApiBaseUrl = settings.customApiBaseUrl ?? defaultSettings.customApiBaseUrl;
+            settings.customModels = settings.customModels ?? defaultSettings.customModels;
+            settings.theme = settings.theme ?? defaultSettings.theme;
             settings.enableSpellCheck = settings.enableSpellCheck ?? defaultSettings.enableSpellCheck;
 
             // Optional: Persist the potentially updated settings back to file if defaults were applied
