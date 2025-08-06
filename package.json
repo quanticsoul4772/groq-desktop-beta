@@ -26,7 +26,8 @@
     "test:paths": "node test-paths.js",
     "test:settings": "node test-settingsManager.js",
     "test:shared-dirs": "node test-shared-directories.js",
-    "benchmark": "node benchmark-tests.js"
+    "benchmark": "node benchmark-tests.js",
+    "benchmark:jest": "node benchmark-jest.js"
   },
   "keywords": [
     "electron",

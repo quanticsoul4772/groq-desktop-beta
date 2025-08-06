@@ -33,3 +33,7 @@ pnpm-debug.log*
 .vscode/
 *.swp
 *.swo
+
+# Test cache
+.jest-cache/
+coverage/
