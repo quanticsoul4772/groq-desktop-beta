@@ -56,3 +56,11 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }));
+
+// Ensure full mock isolation between tests
+afterEach(() => {
+  // Reset all mocks after each test for full isolation
+  jest.resetAllMocks();
+  // Restore all mocked modules
+  jest.restoreAllMocks();
+});
