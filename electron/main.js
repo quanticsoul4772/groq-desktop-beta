@@ -338,6 +338,86 @@ app.whenReady().then(async () => {
 
   // resize-popup handler already registered above during early initialization
 
+  // --- Context Menu IPC Handler ---
+  ipcMain.on('show-context-menu', (event, params) => {
+    const { Menu, MenuItem } = require('electron');
+    const template = [];
+    
+    // Check if spell check is enabled and we have a misspelled word
+    if (params.misspelledWord && params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
+      // Add spell check suggestions (up to 5)
+      const suggestions = params.dictionarySuggestions.slice(0, 5);
+      suggestions.forEach((suggestion) => {
+        template.push({
+          label: suggestion,
+          click: () => {
+            event.sender.send('context-menu-command', { 
+              command: 'replace-misspelled-word', 
+              suggestion,
+              misspelledWord: params.misspelledWord 
+            });
+          }
+        });
+      });
+      
+      if (suggestions.length > 0) {
+        template.push({ type: 'separator' });
+      }
+    }
+    
+    // Standard edit menu items
+    if (params.isEditable) {
+      if (params.selectionText) {
+        template.push({
+          label: 'Cut',
+          accelerator: 'CmdOrCtrl+X',
+          click: () => {
+            event.sender.send('context-menu-command', { command: 'cut' });
+          }
+        });
+        template.push({
+          label: 'Copy',
+          accelerator: 'CmdOrCtrl+C', 
+          click: () => {
+            event.sender.send('context-menu-command', { command: 'copy' });
+          }
+        });
+      } else {
+        // Show disabled cut/copy when no selection
+        template.push({
+          label: 'Cut',
+          enabled: false
+        });
+        template.push({
+          label: 'Copy',
+          enabled: false
+        });
+      }
+      
+      template.push({
+        label: 'Paste',
+        accelerator: 'CmdOrCtrl+V',
+        click: () => {
+          event.sender.send('context-menu-command', { command: 'paste' });
+        }
+      });
+    } else if (params.selectionText) {
+      // For non-editable areas, only show copy
+      template.push({
+        label: 'Copy',
+        accelerator: 'CmdOrCtrl+C',
+        click: () => {
+          event.sender.send('context-menu-command', { command: 'copy' });
+        }
+      });
+    }
+    
+    if (template.length > 0) {
+      const menu = Menu.buildFromTemplate(template);
+      menu.popup({ window: BrowserWindow.fromWebContents(event.sender) });
+    }
+  });
+
   // --- Auth IPC Handler ---
   console.log("[Main Init] Registering auth handler...");
   ipcMain.handle('start-mcp-auth-flow', async (event, { serverId, serverUrl }) => {
