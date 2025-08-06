@@ -1,0 +1,32 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+    
+    - name: Cache Jest cache directory
+      uses: actions/cache@v4
+      with:
+        path: |
+          .jest-cache/react
+          .jest-cache/electron
+          .jest-cache/integration
+        key: jest-cache-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml', '**/jest.config.js') }}
+        restore-keys: |
+          jest-cache-${{ runner.os }}-
+    
+    - run: pnpm install
+    - run: pnpm run test:ci

@@ -25,7 +25,9 @@
     "test:unit": "jest --selectProjects 'React Components' 'Electron Main Process'",
     "test:integration": "jest --selectProjects 'Integration Tests'",
     "test:watch": "jest --watch",
-    "test:ci": "jest --coverage --ci --maxWorkers=2 --forceExit"
+    "test:ci": "jest --coverage --ci --maxWorkers=2 --forceExit",
+    "test:cache-perf": "./test-cache-performance.sh",
+    "test:clear-cache": "rm -rf .jest-cache"
   },
   "keywords": [
     "electron",

@@ -73,17 +73,20 @@ module.exports = {
     {
       displayName: 'React Components',
       testEnvironment: 'jsdom',
-      testMatch: ['<rootDir>/src/**/*.test.(js|jsx)']
+      testMatch: ['<rootDir>/src/**/*.test.(js|jsx)'],
+      cacheDirectory: '<rootDir>/.jest-cache/react'
     },
     {
       displayName: 'Electron Main Process',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/electron/**/*.test.js']
+      testMatch: ['<rootDir>/electron/**/*.test.js'],
+      cacheDirectory: '<rootDir>/.jest-cache/electron'
     },
     {
       displayName: 'Integration Tests',
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/__tests__/integration/**/*.test.js']
+      testMatch: ['<rootDir>/__tests__/integration/**/*.test.js'],
+      cacheDirectory: '<rootDir>/.jest-cache/integration'
     }
   ],
   
@@ -97,5 +100,11 @@ module.exports = {
   restoreMocks: true,
   
   // Max workers for parallel execution
-  maxWorkers: '50%'
+  maxWorkers: '50%',
+  
+  // Cache configuration for improved performance
+  cacheDirectory: '.jest-cache',
+  
+  // Cache transform results to speed up subsequent test runs
+  cache: true
 };
