@@ -5,6 +5,9 @@ const os = require('os');
 // Import the settingsManager
 const { loadSettings, initializeSettingsHandlers } = require('./electron/settingsManager.js');
 
+// Import shared test utilities for performance optimization
+const { testUtils } = require('./test-utils.js');
+
 // Test utilities
 let testResults = [];
 let testCount = 0;
@@ -93,7 +96,7 @@ function assertTrue(condition, message) {
 const mockApp = {
     getPath: (type) => {
         if (type === 'userData') {
-            return path.join(os.tmpdir(), 'groq-test-' + Date.now());
+            return testUtils.getTestDir('mockApp');
         }
         return os.tmpdir();
     }
@@ -126,6 +129,9 @@ function cleanupTestEnvironment(originalEnv) {
 
 console.log('🧪 Running settingsManager.js Unit Tests\n');
 
+// Initialize shared test directory for performance optimization
+testUtils.initializeSharedRoot();
+
 const originalEnv = setupTestEnvironment();
 
 // Test 1: loadSettings without app instance returns minimal defaults
@@ -149,8 +155,7 @@ test('loadSettings without app instance returns minimal defaults', () => {
 // Test 2: Boolean false values are preserved
 test('Boolean false values are preserved in settings merge', () => {
     // Create a temporary directory for test
-    const testUserData = path.join(os.tmpdir(), 'groq-test-boolean-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('boolean-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -180,13 +185,12 @@ test('Boolean false values are preserved in settings merge', () => {
     assertEquals(loadedSettings.enableSpellCheck, false, 'enableSpellCheck should remain false');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('boolean-test');
 });
 
 // Test 3: Zero numeric values are preserved
 test('Zero numeric values are preserved in settings merge', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-zero-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('zero-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -215,13 +219,12 @@ test('Zero numeric values are preserved in settings merge', () => {
     assertEquals(loadedSettings.toolOutputLimit, 0, 'toolOutputLimit should remain 0');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('zero-test');
 });
 
 // Test 4: Empty string values are preserved
 test('Empty string values are preserved in settings merge', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-empty-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('empty-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -252,13 +255,12 @@ test('Empty string values are preserved in settings merge', () => {
     assertEquals(loadedSettings.theme, '', 'theme should remain empty string');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('empty-test');
 });
 
 // Test 5: null vs undefined handling
 test('null vs undefined handling in settings', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-null-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('null-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -290,7 +292,7 @@ test('null vs undefined handling in settings', () => {
     assertEquals(loadedSettings.popupEnabled, true, 'null popupEnabled should use default');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('null-test');
 });
 
 // Test 6: Environment variable precedence
@@ -298,8 +300,7 @@ test('Environment variable precedence for API key', () => {
     // Set environment variable
     process.env.GROQ_API_KEY = 'env-test-key';
     
-    const testUserData = path.join(os.tmpdir(), 'groq-test-env-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('env-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -325,13 +326,12 @@ test('Environment variable precedence for API key', () => {
     
     // Cleanup
     delete process.env.GROQ_API_KEY;
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('env-test');
 });
 
 // Test 7: Settings file creation when missing
 test('Settings file creation when missing', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-create-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('create-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -361,13 +361,12 @@ test('Settings file creation when missing', () => {
     assertEquals(loadedSettings.popupEnabled, true, 'Should have default popupEnabled');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('create-test');
 });
 
 // Test 8: Error handling for corrupted JSON
 test('Error handling for corrupted JSON file', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-corrupt-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('corrupt-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -391,13 +390,12 @@ test('Error handling for corrupted JSON file', () => {
     assertEquals(loadedSettings.popupEnabled, true, 'Should fallback to default popupEnabled on JSON error');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('corrupt-test');
 });
 
 // Test 9: Settings validation in save handler
 test('Settings validation logic', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-validation-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('validation-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -431,13 +429,12 @@ test('Settings validation logic', () => {
     assertEquals(result.success, true, 'Should succeed with valid settings object');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('validation-test');
 });
 
 // Test 10: Mock IPC handler registration and invocation
 test('Mock IPC handlers are registered and can be invoked', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-ipc-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('ipc-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -471,13 +468,12 @@ test('Mock IPC handlers are registered and can be invoked', () => {
     assertEquals(savedData.popupEnabled, true, 'Settings should be saved to file');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('ipc-test');
 });
 
 // Test 11: Mock IPC _reset functionality
 test('Mock IPC _reset clears all handlers', () => {
-    const testUserData = path.join(os.tmpdir(), 'groq-test-reset-' + Date.now());
-    fs.mkdirSync(testUserData, { recursive: true });
+    const testUserData = testUtils.getTestDir('reset-test');
     
     const testApp = {
         getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
@@ -508,7 +504,7 @@ test('Mock IPC _reset clears all handlers', () => {
     assertTrue(errorCaught, 'Should have thrown error after reset');
     
     // Cleanup
-    fs.rmSync(testUserData, { recursive: true, force: true });
+    testUtils.cleanupTestDir('reset-test');
 });
 
 // Test 12: Mock IPC error handling for missing handlers
@@ -529,6 +525,9 @@ test('Mock IPC throws error for unregistered handlers', () => {
 });
 
 cleanupTestEnvironment(originalEnv);
+
+// Clean up all shared test directories
+testUtils.cleanupAll();
 
 // Print test summary
 console.log('\n📊 Test Summary:');
