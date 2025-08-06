@@ -153,6 +153,40 @@ function App() {
     }
   };
 
+  // Function to apply theme
+  const applyTheme = (theme) => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  // Apply theme to document root on mount
+  useEffect(() => {
+    const loadAndApplyTheme = async () => {
+      try {
+        const settings = await window.electron.getSettings();
+        const theme = settings?.theme || 'light';
+        applyTheme(theme);
+      } catch (error) {
+        console.error('Error applying theme:', error);
+        // Default to light mode on error
+        applyTheme('light');
+      }
+    };
+
+    loadAndApplyTheme();
+    
+    // Make theme function available globally for settings page
+    window.updateTheme = applyTheme;
+    
+    // Cleanup
+    return () => {
+      delete window.updateTheme;
+    };
+  }, []);
+
   // Load settings, MCP tools, and model configs when component mounts
   useEffect(() => {
     const loadInitialData = async () => {
