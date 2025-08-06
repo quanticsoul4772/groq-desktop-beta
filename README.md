@@ -113,13 +113,72 @@ pnpm dist:win
 pnpm dist:linux
 ```
 
+## Development
+
+### Testing
+
+This project maintains comprehensive test coverage with a minimum requirement of 90% across all metrics (lines, branches, functions, and statements).
+
+#### Test Scripts
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests with coverage report
+pnpm test:coverage
+
+# Run only unit tests
+pnpm test:unit
+
+# Run only integration tests
+pnpm test:integration
+
+# Run tests in watch mode for development
+pnpm test:watch
+
+# Run tests for CI/CD (enforces coverage thresholds)
+pnpm test:ci
+```
+
+#### Test Structure
+
+- **Unit Tests**: Located in `__tests__/unit/`
+  - React components (`__tests__/unit/components/`)
+  - Electron main process (`__tests__/unit/electron/`)
+  - Utility functions (`__tests__/unit/renderer/`)
+- **Integration Tests**: Located in `__tests__/integration/`
+  - API resilience and retry logic
+  - Cache behavior and performance
+  - Electron-renderer communication
+- **Test Setup**: Automated mocking for Electron, React, and external APIs
+
+#### Coverage Requirements
+
+All new code must maintain:
+- **Lines**: ≥90%
+- **Branches**: ≥90% 
+- **Functions**: ≥90%
+- **Statements**: ≥90%
+
+The build will fail if coverage drops below these thresholds.
+
+#### Running Tests Locally
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run tests with coverage
+pnpm test:coverage
+
+# View coverage report
+open coverage/lcov-report/index.html
+```
+
 ### Testing Cross-Platform Support
 
-This app now supports Windows, macOS, and Linux. Here's how to test cross-platform functionality:
-
-#### Running Cross-Platform Tests
-
-We've added several test scripts to verify platform support:
+This app supports Windows, macOS, and Linux. Legacy platform tests:
 
 ```bash
 # Run all platform tests (including Docker test for Linux)
@@ -132,7 +191,7 @@ pnpm test:paths
 .\test-windows.ps1
 ```
 
-The testing scripts will check:
+The platform testing scripts check:
 - Platform detection
 - Script file resolution
 - Environment variable handling

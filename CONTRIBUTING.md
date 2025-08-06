@@ -101,6 +101,10 @@ groq-desktop-beta/
 │       ├── context/         # React context providers
 │       └── pages/           # Main pages (Settings, etc.)
 ├── shared/                  # Code shared between main and renderer
+├── __tests__/              # Test files
+│   ├── unit/               # Unit tests
+│   ├── integration/        # Integration tests
+│   └── setup/              # Test setup files
 ├── public/                  # Static assets
 ├── package.json             # Dependencies and scripts
 └── vite.config.cjs         # Vite configuration
@@ -108,11 +112,11 @@ groq-desktop-beta/
 
 ## Testing
 
-### Testing Requirements
+### Comprehensive Test Suite
 
-**All contributions must include appropriate tests and maintain our minimum 90% code coverage requirement.**
+This project maintains **90% minimum coverage** across all metrics. All pull requests must include tests for new functionality.
 
-### Running Tests
+#### Test Scripts
 
 ```bash
 # Run all tests
@@ -121,43 +125,70 @@ pnpm test
 # Run tests with coverage report
 pnpm test:coverage
 
-# Run only unit tests
+# Run unit tests only
 pnpm test:unit
 
-# Run only integration tests
+# Run integration tests only  
 pnpm test:integration
 
 # Run tests in watch mode (for development)
 pnpm test:watch
 
-# Run tests in CI mode (with coverage enforcement)
+# Run CI tests (enforces coverage thresholds)
 pnpm test:ci
+
+# Test Jest cache performance
+pnpm test:cache-perf
+
+# Clear Jest cache
+pnpm test:clear-cache
 
 # Test cross-platform functionality
 pnpm test:platforms
 
-# Test path handling only
+# Test path handling
 pnpm test:paths
-
-# On Windows, you can also run:
-.\test-windows.ps1
 ```
 
-### Writing Tests
+#### Jest Cache Configuration
 
-When contributing code, you must:
+The project uses Jest caching to improve test performance:
+- **Transform caching**: Babel transformations are cached in `.jest-cache/`
+- **Parallel execution**: Tests run with 50% of available CPU cores
+- **CI optimization**: GitHub Actions caches both dependencies and Jest cache
 
-1. **Write tests for all new code**: Every new function, component, or module needs tests
-2. **Update tests for modified code**: If you change existing functionality, update its tests
-3. **Maintain coverage thresholds**: Ensure your changes don't drop coverage below 90%
-4. **Follow existing patterns**: Look at existing tests for examples
+Expected performance improvements:
+- **Local development**: 20-40% faster on subsequent runs
+- **CI/CD pipeline**: 20-30% faster with warm cache
 
-#### Test File Locations
+#### Writing Tests
 
-- **React Components**: `src/renderer/components/__tests__/ComponentName.test.jsx`
-- **Electron Main Process**: `electron/__tests__/moduleName.test.js`
-- **Unit Tests**: `__tests__/unit/feature.test.js`
-- **Integration Tests**: `__tests__/integration/api.test.js`
+**Unit Tests** - Place in `__tests__/unit/`:
+- **React Components**: Test rendering, user interactions, props handling
+- **Electron Modules**: Test IPC communication, settings, file operations
+- **Utilities**: Test helper functions, data transformations
+
+**Integration Tests** - Place in `__tests__/integration/`:
+- **API Resilience**: Test retry logic, circuit breakers, rate limiting
+- **Cache Behavior**: Test hits/misses, TTL, tag invalidation
+- **Cross-Module Communication**: Test Electron main-renderer IPC
+
+#### Test Requirements for PRs
+
+✅ **All new code must have tests**
+✅ **Coverage must remain ≥90%**
+✅ **Tests must pass on all platforms**
+✅ **Integration tests for API-dependent features**
+✅ **Mock external dependencies appropriately**
+
+#### Coverage Thresholds
+
+- **Lines**: ≥90%
+- **Branches**: ≥90%
+- **Functions**: ≥90%
+- **Statements**: ≥90%
+
+*The build will fail if coverage drops below these thresholds.*
 
 #### Example Component Test
 
@@ -198,15 +229,7 @@ describe('MyModule', () => {
 });
 ```
 
-### Coverage Requirements
-
-The project enforces minimum coverage thresholds:
-- **Lines**: 90%
-- **Branches**: 90%
-- **Functions**: 90%
-- **Statements**: 90%
-
-**Your PR will fail CI if coverage drops below these thresholds.**
+### Coverage Monitoring
 
 To check coverage locally:
 ```bash
@@ -217,13 +240,16 @@ start coverage/index.html # Windows
 xdg-open coverage/index.html # Linux
 ```
 
-### Manual Testing
+### Manual Testing Checklist
 
-1. **Development Mode**: Ensure `pnpm dev` starts without errors
-2. **Settings**: Verify API key configuration works in Settings page
-3. **Chat Interface**: Test basic chat functionality with image support
-4. **MCP Servers**: Verify local MCP server integration works
-5. **Cross-Platform**: Test on multiple platforms if possible
+Before submitting a PR, manually verify:
+
+1. **Development Mode**: `pnpm dev` starts without errors
+2. **Settings**: API key configuration works in Settings page
+3. **Chat Interface**: Basic chat functionality with image support works
+4. **MCP Servers**: Local MCP server integration works
+5. **Theme Switching**: Light/dark mode toggle works and persists
+6. **Cross-Platform**: Test on your target platform(s)
 
 ## Branch and Commit Conventions
 
@@ -278,14 +304,28 @@ docs(readme): update installation instructions
 ### PR Checklist
 
 - [ ] Code follows existing style and conventions
-- [ ] All tests pass (`pnpm test`)
-- [ ] Test coverage meets 90% minimum requirement (`pnpm test:coverage`)
-- [ ] New code includes appropriate tests
-- [ ] Cross-platform tests pass (`pnpm test:platforms`)
+- [ ] **All tests pass** (`pnpm test:ci`)
+- [ ] **Coverage remains ≥90%** (`pnpm test:coverage`)
+- [ ] **New features have unit tests** (in `__tests__/unit/`)
+- [ ] **API changes have integration tests** (in `__tests__/integration/`)
+- [ ] Legacy platform tests pass (`pnpm test:platforms`)
 - [ ] Documentation updated if needed
 - [ ] Commit messages follow conventional format
 - [ ] No sensitive information (API keys, etc.) committed
 - [ ] Changes tested on at least one platform
+
+#### Testing Requirements
+
+**🔴 PRs will be blocked if:**
+- Coverage drops below 90%
+- Tests fail on CI
+- New code lacks appropriate tests
+
+**✅ All new code must include:**
+- Unit tests for functions/components
+- Integration tests for cross-module features
+- Mocks for external dependencies
+- Error handling test cases
 
 ## Code Style
 
