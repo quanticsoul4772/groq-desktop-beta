@@ -206,10 +206,10 @@ function ChatInput({
 				setMessage(newValue);
 				// Set cursor position
 				const cursorPosition = textarea.selectionStart;
-				setTimeout(() => {
+				requestAnimationFrame(() => {
 					textarea.focus();
 					textarea.setSelectionRange(cursorPosition, cursorPosition);
-				}, 0);
+				});
 				return; // Success, exit early
 			} catch (error) {
 				console.error('Failed to cut text with Clipboard API:', error);
@@ -237,10 +237,10 @@ function ChatInput({
 				const newValue = textarea.value.substring(0, cursorPosition) + clipboardText + textarea.value.substring(textarea.selectionEnd);
 				setMessage(newValue);
 				// Set cursor position after the pasted text
-				setTimeout(() => {
+				requestAnimationFrame(() => {
 					textarea.focus();
 					textarea.setSelectionRange(cursorPosition + clipboardText.length, cursorPosition + clipboardText.length);
-				}, 0);
+				});
 				return; // Success, exit early
 			} catch (error) {
 				console.error('Failed to paste text with Clipboard API:', error);
@@ -299,10 +299,10 @@ function ChatInput({
 						setMessage(newValue);
 						
 						// Set cursor position after the replaced word
-						setTimeout(() => {
+						requestAnimationFrame(() => {
 							textarea.focus();
 							textarea.setSelectionRange(wordStart + command.suggestion.length, wordStart + command.suggestion.length);
-						}, 0);
+						});
 					}
 					break;
 				
