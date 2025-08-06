@@ -40,6 +40,7 @@ xattr -c /Applications/Groq\ Desktop.app
 
 - Chat interface with image support
 - Local MCP servers
+- Dark mode toggle with persistent theme preference
 
 ## Prerequisites
 
@@ -148,6 +149,10 @@ In the settings page, add your Groq API key:
 ```
 
 You can obtain a Groq API key by signing up at [https://console.groq.com](https://console.groq.com).
+
+### Dark Mode
+
+The app now includes a dark mode toggle in the Settings page. Toggle between light and dark themes, and your preference will persist across app restarts. The theme is applied immediately when changed and stored in your user settings.
 
 ## Contributing
 

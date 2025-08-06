@@ -23,6 +23,7 @@ function Settings() {
     toolOutputLimit: 8000,
     customApiBaseUrl: '',
     customModels: {},
+    theme: 'light',
     builtInTools: {
       codeInterpreter: false,
       browserSearch: false
@@ -70,6 +71,9 @@ function Settings() {
                 browserSearch: false
             };
         }
+        if (!settingsData.theme) {
+            settingsData.theme = 'light';
+        }
         setSettings(settingsData);
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -86,6 +90,7 @@ function Settings() {
             toolOutputLimit: 8000,
             customApiBaseUrl: '',
             customModels: {},
+            theme: 'light',
             builtInTools: {
                 codeInterpreter: false,
                 browserSearch: false
@@ -155,10 +160,15 @@ function Settings() {
     saveSettings(updatedSettings);
   };
 
-  const handleToggleChange = (name, checked) => {
-    const updatedSettings = { ...settings, [name]: checked };
+  const handleToggleChange = (name, value) => {
+    const updatedSettings = { ...settings, [name]: value };
     setSettings(updatedSettings);
     saveSettings(updatedSettings);
+    
+    // Immediately apply theme change if it's a theme toggle
+    if (name === 'theme' && window.updateTheme) {
+      window.updateTheme(value);
+    }
   };
 
   const handleBuiltInToolToggle = (toolName, checked) => {
@@ -922,6 +932,28 @@ function Settings() {
                     id="popup-enabled"
                     checked={settings.popupEnabled}
                     onChange={(e) => handleToggleChange('popupEnabled', e.target.checked)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Dark Mode Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Dark Mode</CardTitle>
+                <CardDescription>
+                  Switch between light and dark themes. Your preference will persist across restarts.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="dark-mode" className="font-medium">
+                    Enable Dark Mode
+                  </Label>
+                  <Switch
+                    id="dark-mode"
+                    checked={settings.theme === 'dark'}
+                    onChange={(e) => handleToggleChange('theme', e.target.checked ? 'dark' : 'light')}
                   />
                 </div>
               </CardContent>

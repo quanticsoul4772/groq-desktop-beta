@@ -23,7 +23,8 @@ function loadSettings() {
             customCompletionUrl: '',
             toolOutputLimit: 8000,
             customApiBaseUrl: '',
-            customModels: {}
+            customModels: {},
+            theme: 'light'
         };
     }
     const userDataPath = appInstance.getPath('userData');
@@ -40,7 +41,8 @@ function loadSettings() {
         customCompletionUrl: '',
         toolOutputLimit: 8000,
         customApiBaseUrl: '',
-        customModels: {}
+        customModels: {},
+        theme: 'light'
     };
 
     try {
@@ -79,6 +81,7 @@ function loadSettings() {
             settings.toolOutputLimit = settings.toolOutputLimit ?? defaultSettings.toolOutputLimit;
             settings.customApiBaseUrl = settings.customApiBaseUrl || defaultSettings.customApiBaseUrl;
             settings.customModels = settings.customModels || defaultSettings.customModels;
+            settings.theme = settings.theme || defaultSettings.theme;
 
             // Optional: Persist the potentially updated settings back to file if defaults were applied
             // fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
