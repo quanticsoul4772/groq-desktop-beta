@@ -108,7 +108,62 @@ groq-desktop-beta/
 
 ## Testing
 
-### Running Tests
+### Comprehensive Test Suite
+
+This project maintains **90% minimum coverage** across all metrics. All pull requests must include tests for new functionality.
+
+#### Test Scripts
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests with coverage report
+pnpm test:coverage
+
+# Run unit tests only
+pnpm test:unit
+
+# Run integration tests only  
+pnpm test:integration
+
+# Run tests in watch mode (for development)
+pnpm test:watch
+
+# Run CI tests (enforces coverage thresholds)
+pnpm test:ci
+```
+
+#### Writing Tests
+
+**Unit Tests** - Place in `__tests__/unit/`:
+- **React Components**: Test rendering, user interactions, props handling
+- **Electron Modules**: Test IPC communication, settings, file operations
+- **Utilities**: Test helper functions, data transformations
+
+**Integration Tests** - Place in `__tests__/integration/`:
+- **API Resilience**: Test retry logic, circuit breakers, rate limiting
+- **Cache Behavior**: Test hits/misses, TTL, tag invalidation
+- **Cross-Module Communication**: Test Electron main-renderer IPC
+
+#### Test Requirements for PRs
+
+✅ **All new code must have tests**
+✅ **Coverage must remain ≥90%**
+✅ **Tests must pass on all platforms**
+✅ **Integration tests for API-dependent features**
+✅ **Mock external dependencies appropriately**
+
+#### Coverage Thresholds
+
+- **Lines**: ≥90%
+- **Branches**: ≥90%
+- **Functions**: ≥90%
+- **Statements**: ≥90%
+
+*The build will fail if coverage drops below these thresholds.*
+
+### Legacy Platform Tests
 
 ```bash
 # Test cross-platform functionality
@@ -121,13 +176,16 @@ pnpm test:paths
 .\test-windows.ps1
 ```
 
-### Manual Testing
+### Manual Testing Checklist
 
-1. **Development Mode**: Ensure `pnpm dev` starts without errors
-2. **Settings**: Verify API key configuration works in Settings page
-3. **Chat Interface**: Test basic chat functionality with image support
-4. **MCP Servers**: Verify local MCP server integration works
-5. **Cross-Platform**: Test on multiple platforms if possible
+Before submitting a PR, manually verify:
+
+1. **Development Mode**: `pnpm dev` starts without errors
+2. **Settings**: API key configuration works in Settings page
+3. **Chat Interface**: Basic chat functionality with image support works
+4. **MCP Servers**: Local MCP server integration works
+5. **Theme Switching**: Light/dark mode toggle works and persists
+6. **Cross-Platform**: Test on your target platform(s)
 
 ## Branch and Commit Conventions
 
@@ -182,11 +240,28 @@ docs(readme): update installation instructions
 ### PR Checklist
 
 - [ ] Code follows existing style and conventions
-- [ ] All tests pass (`pnpm test:platforms`)
+- [ ] **All tests pass** (`pnpm test:ci`)
+- [ ] **Coverage remains ≥90%** (`pnpm test:coverage`)
+- [ ] **New features have unit tests** (in `__tests__/unit/`)
+- [ ] **API changes have integration tests** (in `__tests__/integration/`)
+- [ ] Legacy platform tests pass (`pnpm test:platforms`)
 - [ ] Documentation updated if needed
 - [ ] Commit messages follow conventional format
 - [ ] No sensitive information (API keys, etc.) committed
 - [ ] Changes tested on at least one platform
+
+#### Testing Requirements
+
+**🔴 PRs will be blocked if:**
+- Coverage drops below 90%
+- Tests fail on CI
+- New code lacks appropriate tests
+
+**✅ All new code must include:**
+- Unit tests for functions/components
+- Integration tests for cross-module features
+- Mocks for external dependencies
+- Error handling test cases
 
 ## Code Style
 
