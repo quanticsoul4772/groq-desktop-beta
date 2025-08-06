@@ -8,6 +8,17 @@ Groq Desktop features MCP server support for all function calling capable models
 > ```sh
 > xattr -c /Applications/Groq\ Desktop.app
 > ```
+
+## Table of Contents
+
+- [Unofficial Homebrew Installation (macOS)](#unofficial-homebrew-installation-macos)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Troubleshooting](#troubleshooting)
+- [Building for Production](#building-for-production)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
 <img width="450" alt="Screenshot 2025-08-05 at 11 32 04 AM" src="https://github.com/user-attachments/assets/d4fd9224-8186-4117-bdeb-b477f8a42d49" />
 <br>
 <br>
@@ -136,4 +147,14 @@ In the settings page, add your Groq API key:
 }
 ```
 
-You can obtain a Groq API key by signing up at [https://console.groq.com](https://console.groq.com). 
+You can obtain a Groq API key by signing up at [https://console.groq.com](https://console.groq.com).
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for detailed setup instructions, development workflows, and coding conventions.
+
+Quick start for contributors:
+1. Clone the repository
+2. Install dependencies: `pnpm install`
+3. Set up your environment: `cp env.example .env` (add your Groq API key)
+4. Start development: `pnpm dev` 
