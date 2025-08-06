@@ -31,9 +31,56 @@ function assertEquals(actual, expected, message) {
 }
 
 function assertDeepEquals(actual, expected, message) {
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    if (!deepEquals(actual, expected)) {
         throw new Error(`${message || 'Deep assertion failed'}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
+}
+
+function deepEquals(a, b) {
+    // Handle strict equality (including primitives, null, undefined)
+    if (a === b) return true;
+    
+    // Handle null/undefined cases
+    if (a == null || b == null) return a === b;
+    
+    // Handle different types
+    if (typeof a !== typeof b) return false;
+    
+    // Handle primitives that failed strict equality
+    if (typeof a !== 'object') return false;
+    
+    // Handle arrays
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    if (Array.isArray(a)) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (!deepEquals(a[i], b[i])) return false;
+        }
+        return true;
+    }
+    
+    // Handle Date objects
+    if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime();
+    }
+    
+    // Handle RegExp objects
+    if (a instanceof RegExp && b instanceof RegExp) {
+        return a.toString() === b.toString();
+    }
+    
+    // Handle objects
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    
+    if (keysA.length !== keysB.length) return false;
+    
+    for (const key of keysA) {
+        if (!keysB.includes(key)) return false;
+        if (!deepEquals(a[key], b[key])) return false;
+    }
+    
+    return true;
 }
 
 function assertTrue(condition, message) {
