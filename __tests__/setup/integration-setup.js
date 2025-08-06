@@ -1,4 +1,5 @@
 const nock = require('nock');
+const { testUtils } = require('../../test-utils');
 
 // Setup nock for API mocking
 beforeAll(() => {
@@ -13,10 +14,23 @@ beforeEach(() => {
   nock.cleanAll();
 });
 
+afterEach(() => {
+  // Reset all mocks after each test for full isolation
+  jest.resetAllMocks();
+  // Restore all mocked modules 
+  jest.restoreAllMocks();
+  // Clear mock metrics
+  global.mockMetrics.clear();
+  // Clean up any temporary directories created during test
+  testUtils.cleanupAll();
+});
+
 afterAll(() => {
   // Clean up and restore HTTP
   nock.cleanAll();
   nock.restore();
+  // Final cleanup of any remaining test directories
+  testUtils.cleanupAll();
 });
 
 // Mock Groq API

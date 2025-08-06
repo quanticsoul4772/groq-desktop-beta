@@ -93,3 +93,11 @@ jest.mock('path', () => ({
 // Mock process
 process.platform = 'linux';
 process.env.NODE_ENV = 'test';
+
+// Ensure full mock isolation between tests
+afterEach(() => {
+  // Reset all mocks after each test for full isolation
+  jest.resetAllMocks();
+  // Restore all mocked modules
+  jest.restoreAllMocks();
+});
