@@ -193,19 +193,20 @@ describe('API Integration Tests', () => {
           .post('/openai/v1/chat/completions')
           .reply(500, { error: 'Internal server error' });
 
-        try {
-          await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer test-key'
-            },
-            body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
-              messages: [{ role: 'user', content: 'Hello' }]
-            })
-          });
-        } catch (error) {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer test-key'
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: 'Hello' }]
+          })
+        });
+        
+        // Check if the response is an error
+        if (!response.ok && response.status >= 500) {
           failureCount++;
         }
       }

@@ -25,11 +25,13 @@
     "test:cache-perf": "./test-cache-performance.sh",
     "test:clear-cache": "rm -rf .jest-cache",
     "test:platforms": "./test-cross-platform.sh",
-    "test:paths": "node test-paths.js",
-    "test:settings": "node test-settingsManager.js",
-    "test:shared-dirs": "node test-shared-directories.js",
-    "benchmark": "node benchmark-tests.js",
-    "benchmark:jest": "node benchmark-jest.js"
+    "test:paths": "node __tests__/utils/test-paths.js",
+    "test:settings": "node __tests__/utils/test-settingsManager.js",
+    "test:shared-dirs": "node __tests__/utils/test-shared-directories.js",
+    "benchmark": "node __tests__/benchmarks/benchmark-tests.js",
+    "benchmark:jest": "node __tests__/benchmarks/benchmark-jest.js",
+    "format": "prettier --write \"**/*.{js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,json,md,css}\""
   },
   "keywords": [
     "electron",
@@ -51,8 +53,6 @@
     "groq-sdk": "0.16.0",
     "katex": "^0.16.22",
     "lucide-react": "^0.523.0",
-    "next-themes": "^0.4.6",
-    "node-fetch": "^2.6.6",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-markdown": "^10.1.0",
@@ -62,9 +62,7 @@
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
-    "tailwind-merge": "^3.3.1",
-    "tailwind-scrollbar": "^4.0.2",
-    "zod": "^3.24.2"
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
@@ -72,7 +70,6 @@
     "@babel/preset-env": "^7.28.0",
     "@babel/preset-react": "^7.27.1",
     "@eslint/js": "^9.25.1",
-    "@jest/globals": "^30.0.5",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -88,16 +85,12 @@
     "globals": "^16.0.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.0.5",
-    "jest-environment-jsdom": "^30.0.5",
-    "jest-environment-node": "^30.0.5",
     "nock": "^14.0.8",
     "postcss": "^8.4.31",
     "prettier": "^3.6.0",
-    "supertest": "^7.1.4",
     "tailwindcss": "^3.3.3",
     "ts-jest": "^29.2.5",
-    "vite": "^6.2.6",
-    "wait-on": "8.0.3"
+    "vite": "^6.2.6"
   },
   "build": {
     "appId": "com.groq.desktop",

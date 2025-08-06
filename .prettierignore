@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+release/
+coverage/
+.jest-cache/
+
+# Electron vendor files
+electron/vendor/
+
+# Config files that shouldn't be formatted
+*.config.js
+*.config.cjs
+
+# Generated files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

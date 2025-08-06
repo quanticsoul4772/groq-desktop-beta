@@ -1,10 +1,6 @@
 const { pathsToModuleNameMapper } = require('ts-jest');
 
 module.exports = {
-  // Performance optimization
-  maxWorkers: '50%',           // parallel tests
-  cacheDirectory: '<rootDir>/.jest-cache',
-  
   // Test environment configuration
   projects: [
     {
@@ -18,11 +14,21 @@ module.exports = {
       moduleNameMapper: {
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
         '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/__mocks__/fileMock.js',
-        '^@/(.*)$': '<rootDir>/src/renderer/$1'
+        '^@/(.*)$': '<rootDir>/src/renderer/$1',
+        // Mock the entire MarkdownRenderer to avoid ESM issues
+        '^.*/MarkdownRenderer$': '<rootDir>/__mocks__/MarkdownRenderer.js',
+        // Mock ESM modules that cause issues
+        '^react-markdown$': '<rootDir>/__mocks__/react-markdown.js',
+        '^remark-gfm$': '<rootDir>/__mocks__/remark-gfm.js',
+        '^remark-math$': '<rootDir>/__mocks__/remark-math.js',
+        '^rehype-katex$': '<rootDir>/__mocks__/remark-math.js'
       },
       transform: {
         '^.+\\.(js|jsx)$': 'babel-jest'
       },
+      transformIgnorePatterns: [
+        'node_modules/(?!(react-markdown|remark-gfm|remark-math|rehype-katex|vfile|vfile-message|unist-.*|unified|bail|is-plain-obj|trough|remark-parse|remark-rehype|mdast-util-.*|micromark.*|decode-named-character-reference|character-entities|property-information|hast-.*|space-separated-tokens|comma-separated-tokens|pretty-bytes|web-namespaces)/)'
+      ],
       collectCoverageFrom: [
         'src/renderer/**/*.{js,jsx}',
         '!src/renderer/main.jsx',

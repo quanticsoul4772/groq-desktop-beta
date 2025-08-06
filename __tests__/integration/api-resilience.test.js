@@ -257,6 +257,8 @@ describe('API Resilience Integration Tests', () => {
       // Make 3 calls to trigger circuit breaker
       await expect(makeApiCallWithCircuitBreaker()).rejects.toThrow('Service Unavailable');
       await expect(makeApiCallWithCircuitBreaker()).rejects.toThrow('Service Unavailable');
+      
+      // The third call triggers the circuit to open for future calls
       await expect(makeApiCallWithCircuitBreaker()).rejects.toThrow('Service Unavailable');
       
       // Circuit should now be open

@@ -9,9 +9,10 @@ Groq Desktop is an Electron-based desktop application that provides a chat inter
 ## Key Technologies
 
 - **Frontend**: React 19, Vite, TailwindCSS, React Router
-- **Backend**: Electron 27, Node.js (CommonJS modules)
+- **Backend**: Electron 37, Node.js (CommonJS modules)
 - **Build System**: Vite + electron-builder
 - **Package Manager**: pnpm (v10.9.0)
+- **Testing**: Jest with separate configs for React, Electron, and integration tests
 - **Key Libraries**: groq-sdk, @modelcontextprotocol/sdk, react-markdown
 
 ## Essential Commands
@@ -31,8 +32,16 @@ pnpm dist:win         # Build for Windows
 pnpm dist:linux       # Build for Linux
 
 # Testing
+pnpm test             # Run all tests with import validation
+pnpm test:unit        # Run unit tests only
+pnpm test:integration # Run integration tests only
+pnpm test:watch       # Run tests in watch mode
+pnpm test:coverage    # Run tests with coverage report
+pnpm test:ci          # Run tests in CI mode
 pnpm test:platforms   # Run cross-platform tests (includes Docker test for Linux)
 pnpm test:paths       # Test path handling across platforms
+pnpm test:settings    # Test settings manager
+pnpm test:clear-cache # Clear Jest cache
 
 # Linting
 npx eslint .          # Run ESLint (no dedicated script, but ESLint is configured)
@@ -90,3 +99,16 @@ npx eslint .          # Run ESLint (no dedicated script, but ESLint is configure
 - Logs are written to `~/Library/Logs/Groq Desktop` (macOS) or equivalent
 - The app requires a Groq API key configured in settings
 - ESLint is configured but no TypeScript is used in the project
+- Node.js v18+ required for development
+
+## Testing Architecture
+
+The project uses Jest with three separate test environments:
+
+1. **React Components** (`jsdom` environment): Tests for UI components in `/src/renderer`
+2. **Electron Main Process** (`node` environment): Tests for backend logic in `/electron`
+3. **Integration Tests** (`node` environment): End-to-end tests combining multiple modules
+
+Each environment has its own cache directory for improved performance. Tests use mocked versions of ESM modules (react-markdown, remark-gfm, etc.) to avoid compatibility issues.
+
+Coverage thresholds are set to 90% for all metrics (lines, branches, functions, statements).
