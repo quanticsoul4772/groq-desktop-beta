@@ -161,9 +161,8 @@ test('Boolean false values are preserved in settings merge', () => {
     const settingsManager = require('./electron/settingsManager.js');
     
     // Set app instance by calling initializeSettingsHandlers
-    const mockIpcMain = {
-        handle: () => {} // Mock ipcMain.handle
-    };
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
     settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
     
     // Create settings file with false boolean values
@@ -196,7 +195,8 @@ test('Zero numeric values are preserved in settings merge', () => {
     delete require.cache[require.resolve('./electron/settingsManager.js')];
     const settingsManager = require('./electron/settingsManager.js');
     
-    const mockIpcMain = { handle: () => {} };
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
     settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
     
     // Create settings file with zero values
@@ -230,7 +230,8 @@ test('Empty string values are preserved in settings merge', () => {
     delete require.cache[require.resolve('./electron/settingsManager.js')];
     const settingsManager = require('./electron/settingsManager.js');
     
-    const mockIpcMain = { handle: () => {} };
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
     settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
     
     // Create settings file with empty string values
@@ -266,7 +267,8 @@ test('null vs undefined handling in settings', () => {
     delete require.cache[require.resolve('./electron/settingsManager.js')];
     const settingsManager = require('./electron/settingsManager.js');
     
-    const mockIpcMain = { handle: () => {} };
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
     settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
     
     // Create settings file with null and missing (undefined) values
@@ -306,7 +308,8 @@ test('Environment variable precedence for API key', () => {
     delete require.cache[require.resolve('./electron/settingsManager.js')];
     const settingsManager = require('./electron/settingsManager.js');
     
-    const mockIpcMain = { handle: () => {} };
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
     settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
     
     // Create settings file with different API key
@@ -337,7 +340,8 @@ test('Settings file creation when missing', () => {
     delete require.cache[require.resolve('./electron/settingsManager.js')];
     const settingsManager = require('./electron/settingsManager.js');
     
-    const mockIpcMain = { handle: () => {} };
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
     settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
     
     const settingsPath = path.join(testUserData, 'settings.json');
@@ -372,7 +376,8 @@ test('Error handling for corrupted JSON file', () => {
     delete require.cache[require.resolve('./electron/settingsManager.js')];
     const settingsManager = require('./electron/settingsManager.js');
     
-    const mockIpcMain = { handle: () => {} };
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
     settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
     
     // Create corrupted JSON file
@@ -427,6 +432,100 @@ test('Settings validation logic', () => {
     
     // Cleanup
     fs.rmSync(testUserData, { recursive: true, force: true });
+});
+
+// Test 10: Mock IPC handler registration and invocation
+test('Mock IPC handlers are registered and can be invoked', () => {
+    const testUserData = path.join(os.tmpdir(), 'groq-test-ipc-' + Date.now());
+    fs.mkdirSync(testUserData, { recursive: true });
+    
+    const testApp = {
+        getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
+    };
+    
+    delete require.cache[require.resolve('./electron/settingsManager.js')];
+    const settingsManager = require('./electron/settingsManager.js');
+    
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
+    settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
+    
+    // Create a test settings file
+    const settingsPath = path.join(testUserData, 'settings.json');
+    const testSettings = { temperature: 0.8, popupEnabled: false };
+    fs.writeFileSync(settingsPath, JSON.stringify(testSettings, null, 2));
+    
+    // Test get-settings handler
+    const result = mockIpcMain._invoke('get-settings');
+    assertEquals(result.temperature, 0.8, 'Handler should return correct temperature');
+    assertEquals(result.popupEnabled, false, 'Handler should return correct popupEnabled value');
+    
+    // Test save-settings handler
+    const newSettings = { temperature: 0.9, popupEnabled: true };
+    const saveResult = mockIpcMain._invoke('save-settings', null, newSettings);
+    assertEquals(saveResult.success, true, 'Save should succeed');
+    
+    // Verify settings were saved
+    const savedData = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assertEquals(savedData.temperature, 0.9, 'Settings should be saved to file');
+    assertEquals(savedData.popupEnabled, true, 'Settings should be saved to file');
+    
+    // Cleanup
+    fs.rmSync(testUserData, { recursive: true, force: true });
+});
+
+// Test 11: Mock IPC _reset functionality
+test('Mock IPC _reset clears all handlers', () => {
+    const testUserData = path.join(os.tmpdir(), 'groq-test-reset-' + Date.now());
+    fs.mkdirSync(testUserData, { recursive: true });
+    
+    const testApp = {
+        getPath: (type) => type === 'userData' ? testUserData : os.tmpdir()
+    };
+    
+    delete require.cache[require.resolve('./electron/settingsManager.js')];
+    const settingsManager = require('./electron/settingsManager.js');
+    
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
+    settingsManager.initializeSettingsHandlers(mockIpcMain, testApp);
+    
+    // Verify handler is registered and can be called
+    const settings = mockIpcMain._invoke('get-settings');
+    assertTrue(settings !== undefined, 'Handler should be registered and callable');
+    
+    // Reset and verify handlers are cleared
+    mockIpcMain._reset();
+    
+    let errorCaught = false;
+    try {
+        mockIpcMain._invoke('get-settings');
+    } catch (error) {
+        errorCaught = true;
+        assertTrue(error.message.includes('No handler registered'), 'Should throw error for missing handler');
+    }
+    
+    assertTrue(errorCaught, 'Should have thrown error after reset');
+    
+    // Cleanup
+    fs.rmSync(testUserData, { recursive: true, force: true });
+});
+
+// Test 12: Mock IPC error handling for missing handlers
+test('Mock IPC throws error for unregistered handlers', () => {
+    const mockIpcMain = require('./__mocks__/ipcMain.js');
+    mockIpcMain._reset(); // Clear any previous handlers
+    
+    let errorCaught = false;
+    try {
+        mockIpcMain._invoke('non-existent-channel');
+    } catch (error) {
+        errorCaught = true;
+        assertTrue(error.message.includes('No handler registered for channel: non-existent-channel'), 
+                   'Should throw error with channel name');
+    }
+    
+    assertTrue(errorCaught, 'Should have thrown error for missing handler');
 });
 
 cleanupTestEnvironment(originalEnv);
