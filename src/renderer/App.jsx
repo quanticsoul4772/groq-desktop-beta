@@ -83,6 +83,8 @@ function App() {
   const [visionSupported, setVisionSupported] = useState(false);
   // Add state to track if initial model/settings load is complete
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  // State for spell check setting
+  const [enableSpellCheck, setEnableSpellCheck] = useState(true);
 
   // --- State for Tool Approval Flow ---
   const [pendingApprovalCall, setPendingApprovalCall] = useState(null); // Holds the tool call object needing approval
@@ -220,6 +222,8 @@ function App() {
 
         setSelectedModel(effectiveModel); // Set the final selected model state
 
+        // Load spell check setting
+        setEnableSpellCheck(settings?.enableSpellCheck ?? true);
 
         // Initial load of MCP tools (can happen after model/settings)
         const mcpToolsResult = await window.electron.getMcpTools();
@@ -990,6 +994,7 @@ function App() {
                     onModelChange={setSelectedModel}
                     onOpenMcpTools={() => setIsToolsPanelOpen(true)}
                     modelConfigs={modelConfigs}
+                    enableSpellCheck={enableSpellCheck}
                   />
                 </div>
               </div>
@@ -1015,6 +1020,7 @@ function App() {
                     onModelChange={setSelectedModel}
                     onOpenMcpTools={() => setIsToolsPanelOpen(true)}
                     modelConfigs={modelConfigs}
+                    enableSpellCheck={enableSpellCheck}
                   />
                 </div>
               </div>
