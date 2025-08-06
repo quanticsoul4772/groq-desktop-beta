@@ -171,31 +171,35 @@ function ChatInput({
 
 	// Helper functions for clipboard operations
 	const handleCopyAction = async (textarea) => {
-		try {
-			const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-			if (navigator.clipboard && navigator.clipboard.writeText) {
-				await navigator.clipboard.writeText(selectedText);
-			} else {
-				// Fallback for browsers without Clipboard API support
-				console.warn('Clipboard API not supported, copy operation may not work');
-				// Try to use the old execCommand as fallback
-				document.execCommand('copy');
-			}
-		} catch (error) {
-			console.error('Failed to copy text:', error);
-			// Fallback to execCommand if clipboard API fails
+		const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+		
+		// Try modern Clipboard API first
+		if (navigator.clipboard && navigator.clipboard.writeText) {
 			try {
-				document.execCommand('copy');
-			} catch (fallbackError) {
-				console.error('Both Clipboard API and execCommand failed:', fallbackError);
+				await navigator.clipboard.writeText(selectedText);
+				return; // Success, exit early
+			} catch (error) {
+				console.error('Failed to copy text with Clipboard API:', error);
+				// Fall through to execCommand fallback
 			}
+		} else {
+			console.warn('Clipboard API not supported, using execCommand fallback');
+		}
+		
+		// Single fallback to execCommand
+		try {
+			document.execCommand('copy');
+		} catch (fallbackError) {
+			console.error('execCommand copy failed:', fallbackError);
 		}
 	};
 
 	const handleCutAction = async (textarea) => {
-		try {
-			const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-			if (navigator.clipboard && navigator.clipboard.writeText) {
+		const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+		
+		// Try modern Clipboard API first
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			try {
 				await navigator.clipboard.writeText(selectedText);
 				// Remove the selected text from textarea
 				const newValue = textarea.value.substring(0, textarea.selectionStart) + textarea.value.substring(textarea.selectionEnd);
@@ -206,25 +210,27 @@ function ChatInput({
 					textarea.focus();
 					textarea.setSelectionRange(cursorPosition, cursorPosition);
 				}, 0);
-			} else {
-				// Fallback for browsers without Clipboard API support
-				console.warn('Clipboard API not supported, cut operation may not work');
-				document.execCommand('cut');
+				return; // Success, exit early
+			} catch (error) {
+				console.error('Failed to cut text with Clipboard API:', error);
+				// Fall through to execCommand fallback
 			}
-		} catch (error) {
-			console.error('Failed to cut text:', error);
-			// Fallback to execCommand if clipboard API fails
-			try {
-				document.execCommand('cut');
-			} catch (fallbackError) {
-				console.error('Both Clipboard API and execCommand failed:', fallbackError);
-			}
+		} else {
+			console.warn('Clipboard API not supported, using execCommand fallback');
+		}
+		
+		// Single fallback to execCommand
+		try {
+			document.execCommand('cut');
+		} catch (fallbackError) {
+			console.error('execCommand cut failed:', fallbackError);
 		}
 	};
 
 	const handlePasteAction = async (textarea) => {
-		try {
-			if (navigator.clipboard && navigator.clipboard.readText) {
+		// Try modern Clipboard API first
+		if (navigator.clipboard && navigator.clipboard.readText) {
+			try {
 				const clipboardText = await navigator.clipboard.readText();
 				// Insert the clipboard text at the current cursor position
 				const cursorPosition = textarea.selectionStart;
@@ -235,19 +241,20 @@ function ChatInput({
 					textarea.focus();
 					textarea.setSelectionRange(cursorPosition + clipboardText.length, cursorPosition + clipboardText.length);
 				}, 0);
-			} else {
-				// Fallback for browsers without Clipboard API support
-				console.warn('Clipboard API not supported, paste operation may not work');
-				document.execCommand('paste');
+				return; // Success, exit early
+			} catch (error) {
+				console.error('Failed to paste text with Clipboard API:', error);
+				// Fall through to execCommand fallback
 			}
-		} catch (error) {
-			console.error('Failed to paste text:', error);
-			// Fallback to execCommand if clipboard API fails
-			try {
-				document.execCommand('paste');
-			} catch (fallbackError) {
-				console.error('Both Clipboard API and execCommand failed:', fallbackError);
-			}
+		} else {
+			console.warn('Clipboard API not supported, using execCommand fallback');
+		}
+		
+		// Single fallback to execCommand
+		try {
+			document.execCommand('paste');
+		} catch (fallbackError) {
+			console.error('execCommand paste failed:', fallbackError);
 		}
 	};
 
