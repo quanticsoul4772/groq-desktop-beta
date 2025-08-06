@@ -71,4 +71,15 @@ const electron = {
   }
 };
 
+// Freeze the mock to prevent tampering
+Object.freeze(electron.app);
+Object.freeze(electron.BrowserWindow);
+Object.freeze(electron.ipcMain);
+Object.freeze(electron.ipcRenderer);
+Object.freeze(electron.dialog);
+Object.freeze(electron.Menu);
+Object.freeze(electron.shell);
+Object.freeze(electron.contextBridge);
+Object.freeze(electron);
+
 module.exports = electron;
