@@ -24,6 +24,7 @@ function Settings() {
     customApiBaseUrl: '',
     customModels: {},
     theme: 'light',
+    enableSpellCheck: true,
     builtInTools: {
       codeInterpreter: false,
       browserSearch: false
@@ -74,6 +75,9 @@ function Settings() {
         if (!settingsData.theme) {
             settingsData.theme = 'light';
         }
+        if (settingsData.enableSpellCheck === undefined) {
+            settingsData.enableSpellCheck = true;
+        }
         setSettings(settingsData);
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -91,6 +95,7 @@ function Settings() {
             customApiBaseUrl: '',
             customModels: {},
             theme: 'light',
+            enableSpellCheck: true,
             builtInTools: {
                 codeInterpreter: false,
                 browserSearch: false
@@ -954,6 +959,28 @@ function Settings() {
                     id="dark-mode"
                     checked={settings.theme === 'dark'}
                     onChange={(e) => handleToggleChange('theme', e.target.checked ? 'dark' : 'light')}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Spell Check Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Spell Check</CardTitle>
+                <CardDescription>
+                  Enable native spell-checking with red underlines for typos in the chat input. Uses your browser's built-in spell checker.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="spell-check" className="font-medium">
+                    Enable Spell Check
+                  </Label>
+                  <Switch
+                    id="spell-check"
+                    checked={settings.enableSpellCheck}
+                    onChange={(e) => handleToggleChange('enableSpellCheck', e.target.checked)}
                   />
                 </div>
               </CardContent>

@@ -21,6 +21,7 @@ function ChatInput({
 	onModelChange,
 	onOpenMcpTools,
 	modelConfigs = {},
+	enableSpellCheck = true,
 }) {
 	const [message, setMessage] = useState("");
 	const [suggestion, setSuggestion] = useState("");
@@ -370,6 +371,9 @@ function ChatInput({
 							onPaste={handlePaste}
 							onHeightChange={handleHeightChange}
 							placeholder={isDragOver ? "Drop files here..." : "Ask Groq anything..."}
+							spellCheck={enableSpellCheck}
+							autoCorrect={enableSpellCheck ? "on" : "off"}
+							autoCapitalize={enableSpellCheck ? "sentences" : "off"}
 							className={cn(
 								"w-full px-4 py-3 bg-background/80 backdrop-blur-sm resize-none border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring/50 transition-all duration-200",
 								isDragOver 

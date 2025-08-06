@@ -24,7 +24,8 @@ function loadSettings() {
             toolOutputLimit: 8000,
             customApiBaseUrl: '',
             customModels: {},
-            theme: 'light'
+            theme: 'light',
+            enableSpellCheck: true
         };
     }
     const userDataPath = appInstance.getPath('userData');
@@ -42,7 +43,8 @@ function loadSettings() {
         toolOutputLimit: 8000,
         customApiBaseUrl: '',
         customModels: {},
-        theme: 'light'
+        theme: 'light',
+        enableSpellCheck: true
     };
 
     try {
@@ -82,6 +84,7 @@ function loadSettings() {
             settings.customApiBaseUrl = settings.customApiBaseUrl || defaultSettings.customApiBaseUrl;
             settings.customModels = settings.customModels || defaultSettings.customModels;
             settings.theme = settings.theme || defaultSettings.theme;
+            settings.enableSpellCheck = settings.enableSpellCheck ?? defaultSettings.enableSpellCheck;
 
             // Optional: Persist the potentially updated settings back to file if defaults were applied
             // fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
