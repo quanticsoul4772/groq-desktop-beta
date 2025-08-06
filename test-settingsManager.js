@@ -29,13 +29,13 @@ function test(name, testFn) {
 
 function assertEquals(actual, expected, message) {
     if (actual !== expected) {
-        throw new Error(`${message || 'Assertion failed'}: expected ${expected}, got ${actual}`);
+        throw new Error(`${message || `Value assertion failed: expected '${expected}' (${typeof expected}) but received '${actual}' (${typeof actual})`}`);
     }
 }
 
 function assertDeepEquals(actual, expected, message) {
     if (!deepEquals(actual, expected)) {
-        throw new Error(`${message || 'Deep assertion failed'}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+        throw new Error(`${message || `Deep comparison failed: objects are not structurally equal\nExpected: ${JSON.stringify(expected, null, 2)}\nReceived: ${JSON.stringify(actual, null, 2)}`}`);
     }
 }
 
@@ -88,7 +88,7 @@ function deepEquals(a, b) {
 
 function assertTrue(condition, message) {
     if (!condition) {
-        throw new Error(message || 'Expected condition to be true');
+        throw new Error(message || `Boolean assertion failed: expected truthy value but received '${condition}' (${typeof condition})`);
     }
 }
 
@@ -146,10 +146,10 @@ test('loadSettings without app instance returns minimal defaults', () => {
     const settings = freshModule.loadSettings();
     
     // Should return defaults without crashing
-    assertTrue(settings.hasOwnProperty('GROQ_API_KEY'), 'Should have GROQ_API_KEY');
-    assertTrue(settings.hasOwnProperty('model'), 'Should have model');
-    assertEquals(settings.temperature, 0.7, 'Default temperature should be 0.7');
-    assertEquals(settings.popupEnabled, true, 'Default popupEnabled should be true');
+    assertTrue(settings.hasOwnProperty('GROQ_API_KEY'), 'Settings object must contain GROQ_API_KEY property for API authentication');
+    assertTrue(settings.hasOwnProperty('model'), 'Settings object must contain model property to specify the AI model to use');
+    assertEquals(settings.temperature, 0.7, `Default temperature must be 0.7 for consistent model behavior, found ${settings.temperature}`);
+    assertEquals(settings.popupEnabled, true, `Default popupEnabled must be true to enable popup functionality, found ${settings.popupEnabled}`);
 });
 
 // Test 2: Boolean false values are preserved
@@ -181,8 +181,8 @@ test('Boolean false values are preserved in settings merge', () => {
     
     const loadedSettings = settingsManager.loadSettings();
     
-    assertEquals(loadedSettings.popupEnabled, false, 'popupEnabled should remain false');
-    assertEquals(loadedSettings.enableSpellCheck, false, 'enableSpellCheck should remain false');
+    assertEquals(loadedSettings.popupEnabled, false, `Settings merge must preserve boolean false value for popupEnabled, found ${loadedSettings.popupEnabled}`);
+    assertEquals(loadedSettings.enableSpellCheck, false, `Settings merge must preserve boolean false value for enableSpellCheck, found ${loadedSettings.enableSpellCheck}`);
     
     // Cleanup
     testUtils.cleanupTestDir('boolean-test');
@@ -214,9 +214,9 @@ test('Zero numeric values are preserved in settings merge', () => {
     
     const loadedSettings = settingsManager.loadSettings();
     
-    assertEquals(loadedSettings.temperature, 0, 'temperature should remain 0');
-    assertEquals(loadedSettings.top_p, 0, 'top_p should remain 0');
-    assertEquals(loadedSettings.toolOutputLimit, 0, 'toolOutputLimit should remain 0');
+    assertEquals(loadedSettings.temperature, 0, `Settings merge must preserve zero value for temperature parameter, found ${loadedSettings.temperature}`);
+    assertEquals(loadedSettings.top_p, 0, `Settings merge must preserve zero value for top_p parameter, found ${loadedSettings.top_p}`);
+    assertEquals(loadedSettings.toolOutputLimit, 0, `Settings merge must preserve zero value for toolOutputLimit parameter, found ${loadedSettings.toolOutputLimit}`);
     
     // Cleanup
     testUtils.cleanupTestDir('zero-test');
@@ -249,10 +249,10 @@ test('Empty string values are preserved in settings merge', () => {
     
     const loadedSettings = settingsManager.loadSettings();
     
-    assertEquals(loadedSettings.customSystemPrompt, '', 'customSystemPrompt should remain empty string');
-    assertEquals(loadedSettings.customCompletionUrl, '', 'customCompletionUrl should remain empty string');
-    assertEquals(loadedSettings.customApiBaseUrl, '', 'customApiBaseUrl should remain empty string');
-    assertEquals(loadedSettings.theme, '', 'theme should remain empty string');
+    assertEquals(loadedSettings.customSystemPrompt, '', `Settings merge must preserve empty string for customSystemPrompt, found '${loadedSettings.customSystemPrompt}'`);
+    assertEquals(loadedSettings.customCompletionUrl, '', `Settings merge must preserve empty string for customCompletionUrl, found '${loadedSettings.customCompletionUrl}'`);
+    assertEquals(loadedSettings.customApiBaseUrl, '', `Settings merge must preserve empty string for customApiBaseUrl, found '${loadedSettings.customApiBaseUrl}'`);
+    assertEquals(loadedSettings.theme, '', `Settings merge must preserve empty string for theme, found '${loadedSettings.theme}'`);
     
     // Cleanup
     testUtils.cleanupTestDir('empty-test');
@@ -286,10 +286,10 @@ test('null vs undefined handling in settings', () => {
     const loadedSettings = settingsManager.loadSettings();
     
     // null values should be replaced with defaults due to nullish coalescing
-    assertEquals(loadedSettings.temperature, 0.7, 'null temperature should use default');
-    assertEquals(loadedSettings.top_p, 0.95, 'undefined top_p should use default');
-    assertEquals(loadedSettings.customSystemPrompt, '', 'null customSystemPrompt should use default');
-    assertEquals(loadedSettings.popupEnabled, true, 'null popupEnabled should use default');
+    assertEquals(loadedSettings.temperature, 0.7, `Null temperature value must fallback to default 0.7 via nullish coalescing, found ${loadedSettings.temperature}`);
+    assertEquals(loadedSettings.top_p, 0.95, `Undefined top_p value must fallback to default 0.95 via nullish coalescing, found ${loadedSettings.top_p}`);
+    assertEquals(loadedSettings.customSystemPrompt, '', `Null customSystemPrompt must fallback to default empty string, found '${loadedSettings.customSystemPrompt}'`);
+    assertEquals(loadedSettings.popupEnabled, true, `Null popupEnabled must fallback to default true value, found ${loadedSettings.popupEnabled}`);
     
     // Cleanup
     testUtils.cleanupTestDir('null-test');
@@ -322,7 +322,7 @@ test('Environment variable precedence for API key', () => {
     
     const loadedSettings = settingsManager.loadSettings();
     
-    assertEquals(loadedSettings.GROQ_API_KEY, 'env-test-key', 'Environment variable should take precedence');
+    assertEquals(loadedSettings.GROQ_API_KEY, 'env-test-key', `GROQ_API_KEY from environment must override file setting for security, expected 'env-test-key' but found '${loadedSettings.GROQ_API_KEY}'`);
     
     // Cleanup
     delete process.env.GROQ_API_KEY;
@@ -354,11 +354,11 @@ test('Settings file creation when missing', () => {
     const loadedSettings = settingsManager.loadSettings();
     
     // File should be created
-    assertTrue(fs.existsSync(settingsPath), 'Settings file should be created');
+    assertTrue(fs.existsSync(settingsPath), `Settings file must be auto-created when missing at path: ${settingsPath}`);
     
     // Should return default settings
-    assertEquals(loadedSettings.temperature, 0.7, 'Should have default temperature');
-    assertEquals(loadedSettings.popupEnabled, true, 'Should have default popupEnabled');
+    assertEquals(loadedSettings.temperature, 0.7, `Auto-created settings must have default temperature 0.7, found ${loadedSettings.temperature}`);
+    assertEquals(loadedSettings.popupEnabled, true, `Auto-created settings must have default popupEnabled true, found ${loadedSettings.popupEnabled}`);
     
     // Cleanup
     testUtils.cleanupTestDir('create-test');
@@ -386,8 +386,8 @@ test('Error handling for corrupted JSON file', () => {
     const loadedSettings = settingsManager.loadSettings();
     
     // Should return defaults when JSON is corrupted
-    assertEquals(loadedSettings.temperature, 0.7, 'Should fallback to default temperature on JSON error');
-    assertEquals(loadedSettings.popupEnabled, true, 'Should fallback to default popupEnabled on JSON error');
+    assertEquals(loadedSettings.temperature, 0.7, `Corrupted JSON must fallback to default temperature 0.7 for graceful recovery, found ${loadedSettings.temperature}`);
+    assertEquals(loadedSettings.popupEnabled, true, `Corrupted JSON must fallback to default popupEnabled true for graceful recovery, found ${loadedSettings.popupEnabled}`);
     
     // Cleanup
     testUtils.cleanupTestDir('corrupt-test');
@@ -417,16 +417,16 @@ test('Settings validation logic', () => {
     
     // Test invalid settings object
     let result = saveHandlerFn(null, null);
-    assertEquals(result.success, false, 'Should fail with null settings');
-    assertTrue(result.error.includes('Invalid settings object'), 'Should have validation error message');
+    assertEquals(result.success, false, `Settings validation must reject null input for data integrity, result.success was ${result.success}`);
+    assertTrue(result.error.includes('Invalid settings object'), `Validation error must specify 'Invalid settings object' for null input, got: '${result.error}'`);
     
     result = saveHandlerFn(null, 'not an object');
-    assertEquals(result.success, false, 'Should fail with non-object settings');
+    assertEquals(result.success, false, `Settings validation must reject non-object input (string), result.success was ${result.success}`);
     
     // Test valid settings object
     const validSettings = { temperature: 0.5, popupEnabled: false };
     result = saveHandlerFn(null, validSettings);
-    assertEquals(result.success, true, 'Should succeed with valid settings object');
+    assertEquals(result.success, true, `Settings validation must accept valid object input, result.success was ${result.success}`);
     
     // Cleanup
     testUtils.cleanupTestDir('validation-test');
@@ -454,18 +454,18 @@ test('Mock IPC handlers are registered and can be invoked', () => {
     
     // Test get-settings handler
     const result = mockIpcMain._invoke('get-settings');
-    assertEquals(result.temperature, 0.8, 'Handler should return correct temperature');
-    assertEquals(result.popupEnabled, false, 'Handler should return correct popupEnabled value');
+    assertEquals(result.temperature, 0.8, `IPC get-settings handler must return saved temperature value 0.8, found ${result.temperature}`);
+    assertEquals(result.popupEnabled, false, `IPC get-settings handler must return saved popupEnabled false value, found ${result.popupEnabled}`);
     
     // Test save-settings handler
     const newSettings = { temperature: 0.9, popupEnabled: true };
     const saveResult = mockIpcMain._invoke('save-settings', null, newSettings);
-    assertEquals(saveResult.success, true, 'Save should succeed');
+    assertEquals(saveResult.success, true, `IPC save-settings handler must succeed with valid data, saveResult.success was ${saveResult.success}`);
     
     // Verify settings were saved
     const savedData = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    assertEquals(savedData.temperature, 0.9, 'Settings should be saved to file');
-    assertEquals(savedData.popupEnabled, true, 'Settings should be saved to file');
+    assertEquals(savedData.temperature, 0.9, `IPC handler must persist temperature 0.9 to settings file, found ${savedData.temperature} in saved file`);
+    assertEquals(savedData.popupEnabled, true, `IPC handler must persist popupEnabled true to settings file, found ${savedData.popupEnabled} in saved file`);
     
     // Cleanup
     testUtils.cleanupTestDir('ipc-test');
@@ -488,7 +488,7 @@ test('Mock IPC _reset clears all handlers', () => {
     
     // Verify handler is registered and can be called
     const settings = mockIpcMain._invoke('get-settings');
-    assertTrue(settings !== undefined, 'Handler should be registered and callable');
+    assertTrue(settings !== undefined, `IPC get-settings handler must be registered and return defined result, got ${typeof settings}: ${settings}`);
     
     // Reset and verify handlers are cleared
     mockIpcMain._reset();
@@ -498,10 +498,10 @@ test('Mock IPC _reset clears all handlers', () => {
         mockIpcMain._invoke('get-settings');
     } catch (error) {
         errorCaught = true;
-        assertTrue(error.message.includes('No handler registered'), 'Should throw error for missing handler');
+        assertTrue(error.message.includes('No handler registered'), `Mock IPC must throw 'No handler registered' error after reset, got: '${error.message}'`);
     }
     
-    assertTrue(errorCaught, 'Should have thrown error after reset');
+    assertTrue(errorCaught, `Mock IPC _reset() must clear handlers causing subsequent calls to throw errors, errorCaught was ${errorCaught}`);
     
     // Cleanup
     testUtils.cleanupTestDir('reset-test');
@@ -518,10 +518,10 @@ test('Mock IPC throws error for unregistered handlers', () => {
     } catch (error) {
         errorCaught = true;
         assertTrue(error.message.includes('No handler registered for channel: non-existent-channel'), 
-                   'Should throw error with channel name');
+                   `Mock IPC must throw descriptive error with channel name for unregistered handlers, got: '${error.message}'`);
     }
     
-    assertTrue(errorCaught, 'Should have thrown error for missing handler');
+    assertTrue(errorCaught, `Mock IPC must throw error when invoking unregistered handler 'non-existent-channel', errorCaught was ${errorCaught}`);
 });
 
 cleanupTestEnvironment(originalEnv);
