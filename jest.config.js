@@ -1,6 +1,10 @@
 const { pathsToModuleNameMapper } = require('ts-jest');
 
 module.exports = {
+  // Performance optimization
+  maxWorkers: '50%',           // parallel tests
+  cacheDirectory: '<rootDir>/.jest-cache',
+  
   // Test environment configuration
   projects: [
     {
