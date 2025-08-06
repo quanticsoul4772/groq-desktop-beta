@@ -169,9 +169,91 @@ function ChatInput({
 		}
 	}, []);
 
+	// Helper functions for clipboard operations
+	const handleCopyAction = async (textarea) => {
+		try {
+			const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+			if (navigator.clipboard && navigator.clipboard.writeText) {
+				await navigator.clipboard.writeText(selectedText);
+			} else {
+				// Fallback for browsers without Clipboard API support
+				console.warn('Clipboard API not supported, copy operation may not work');
+				// Try to use the old execCommand as fallback
+				document.execCommand('copy');
+			}
+		} catch (error) {
+			console.error('Failed to copy text:', error);
+			// Fallback to execCommand if clipboard API fails
+			try {
+				document.execCommand('copy');
+			} catch (fallbackError) {
+				console.error('Both Clipboard API and execCommand failed:', fallbackError);
+			}
+		}
+	};
+
+	const handleCutAction = async (textarea) => {
+		try {
+			const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+			if (navigator.clipboard && navigator.clipboard.writeText) {
+				await navigator.clipboard.writeText(selectedText);
+				// Remove the selected text from textarea
+				const newValue = textarea.value.substring(0, textarea.selectionStart) + textarea.value.substring(textarea.selectionEnd);
+				setMessage(newValue);
+				// Set cursor position
+				const cursorPosition = textarea.selectionStart;
+				setTimeout(() => {
+					textarea.focus();
+					textarea.setSelectionRange(cursorPosition, cursorPosition);
+				}, 0);
+			} else {
+				// Fallback for browsers without Clipboard API support
+				console.warn('Clipboard API not supported, cut operation may not work');
+				document.execCommand('cut');
+			}
+		} catch (error) {
+			console.error('Failed to cut text:', error);
+			// Fallback to execCommand if clipboard API fails
+			try {
+				document.execCommand('cut');
+			} catch (fallbackError) {
+				console.error('Both Clipboard API and execCommand failed:', fallbackError);
+			}
+		}
+	};
+
+	const handlePasteAction = async (textarea) => {
+		try {
+			if (navigator.clipboard && navigator.clipboard.readText) {
+				const clipboardText = await navigator.clipboard.readText();
+				// Insert the clipboard text at the current cursor position
+				const cursorPosition = textarea.selectionStart;
+				const newValue = textarea.value.substring(0, cursorPosition) + clipboardText + textarea.value.substring(textarea.selectionEnd);
+				setMessage(newValue);
+				// Set cursor position after the pasted text
+				setTimeout(() => {
+					textarea.focus();
+					textarea.setSelectionRange(cursorPosition + clipboardText.length, cursorPosition + clipboardText.length);
+				}, 0);
+			} else {
+				// Fallback for browsers without Clipboard API support
+				console.warn('Clipboard API not supported, paste operation may not work');
+				document.execCommand('paste');
+			}
+		} catch (error) {
+			console.error('Failed to paste text:', error);
+			// Fallback to execCommand if clipboard API fails
+			try {
+				document.execCommand('paste');
+			} catch (fallbackError) {
+				console.error('Both Clipboard API and execCommand failed:', fallbackError);
+			}
+		}
+	};
+
 	// Handle context menu commands
 	useEffect(() => {
-		const handleContextMenuCommand = (command) => {
+		const handleContextMenuCommand = async (command) => {
 			if (!textareaRef.current) return;
 			
 			const textarea = textareaRef.current;
@@ -219,18 +301,18 @@ function ChatInput({
 				
 				case 'cut':
 					if (textarea.selectionStart !== textarea.selectionEnd) {
-						document.execCommand('cut');
+						await handleCutAction(textarea);
 					}
 					break;
 					
 				case 'copy':
 					if (textarea.selectionStart !== textarea.selectionEnd) {
-						document.execCommand('copy');
+						await handleCopyAction(textarea);
 					}
 					break;
 					
 				case 'paste':
-					document.execCommand('paste');
+					await handlePasteAction(textarea);
 					break;
 			}
 		};
