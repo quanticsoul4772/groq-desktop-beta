@@ -18,4 +18,7 @@ const mockIpcMain = {
   }
 };
 
+// Freeze the mock to prevent tampering
+Object.freeze(mockIpcMain);
+
 module.exports = mockIpcMain;

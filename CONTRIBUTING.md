@@ -324,8 +324,66 @@ docs(readme): update installation instructions
 **✅ All new code must include:**
 - Unit tests for functions/components
 - Integration tests for cross-module features
-- Mocks for external dependencies
+- Mocks for external dependencies (following security guidelines)
 - Error handling test cases
+
+## Mocking Guidelines
+
+### Security Best Practices
+
+To prevent malicious tests from tampering with shared mocks and masking security issues:
+
+#### 1. Frozen Mock Objects
+
+All mock objects exported from `__mocks__/` are **frozen** to prevent mutation:
+
+```javascript
+// ❌ BAD - This will throw TypeError
+const electronMock = require('../__mocks__/electron');
+electronMock.maliciousMethod = jest.fn(); // TypeError: Cannot add property
+
+// ✅ GOOD - Clone the mock to customize
+const electronMock = require('../__mocks__/electron');
+const customElectron = { ...electronMock };
+customElectron.customMethod = jest.fn(); // Works fine
+```
+
+#### 2. Permission Error Testing
+
+Critical filesystem operations must be tested **without mocks** to catch permission errors:
+
+```javascript
+// ❌ BAD - Mocks hide real permission issues
+jest.mock('fs');
+fs.writeFileSync = jest.fn(); // This won't catch real EACCES/EPERM errors
+
+// ✅ GOOD - Test real filesystem operations
+describe('Permission Handling (No Mocks)', () => {
+  test('should handle EACCES errors appropriately', () => {
+    // Use real fs operations to test error handling
+    expect(() => {
+      fs.writeFileSync('/readonly/path/file.json', 'data');
+    }).toThrow(/EACCES/);
+  });
+});
+```
+
+#### 3. Mock Customization Rules
+
+- **Always clone frozen mocks** before customization
+- **Document why** you're customizing a mock in your test
+- **Test both mocked and real scenarios** for security-critical code
+- **Never modify** shared mock objects directly
+
+#### 4. Error Handling Requirements
+
+All filesystem operations must:
+- Handle `EACCES` (permission denied) errors appropriately
+- Handle `EPERM` (operation not permitted) errors appropriately  
+- Handle `ENOENT` (file not found) errors appropriately
+- **Not silently swallow** any of these errors unless explicitly intended
+
+Tests must verify that these errors are properly propagated and not hidden by overly broad `try-catch` blocks.
 
 ## Code Style
 
