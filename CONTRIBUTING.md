@@ -108,9 +108,31 @@ groq-desktop-beta/
 
 ## Testing
 
+### Testing Requirements
+
+**All contributions must include appropriate tests and maintain our minimum 90% code coverage requirement.**
+
 ### Running Tests
 
 ```bash
+# Run all tests
+pnpm test
+
+# Run tests with coverage report
+pnpm test:coverage
+
+# Run only unit tests
+pnpm test:unit
+
+# Run only integration tests
+pnpm test:integration
+
+# Run tests in watch mode (for development)
+pnpm test:watch
+
+# Run tests in CI mode (with coverage enforcement)
+pnpm test:ci
+
 # Test cross-platform functionality
 pnpm test:platforms
 
@@ -119,6 +141,80 @@ pnpm test:paths
 
 # On Windows, you can also run:
 .\test-windows.ps1
+```
+
+### Writing Tests
+
+When contributing code, you must:
+
+1. **Write tests for all new code**: Every new function, component, or module needs tests
+2. **Update tests for modified code**: If you change existing functionality, update its tests
+3. **Maintain coverage thresholds**: Ensure your changes don't drop coverage below 90%
+4. **Follow existing patterns**: Look at existing tests for examples
+
+#### Test File Locations
+
+- **React Components**: `src/renderer/components/__tests__/ComponentName.test.jsx`
+- **Electron Main Process**: `electron/__tests__/moduleName.test.js`
+- **Unit Tests**: `__tests__/unit/feature.test.js`
+- **Integration Tests**: `__tests__/integration/api.test.js`
+
+#### Example Component Test
+
+```javascript
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import MyComponent from '../MyComponent';
+
+describe('MyComponent', () => {
+  test('renders correctly', () => {
+    render(<MyComponent />);
+    expect(screen.getByText('Expected Text')).toBeInTheDocument();
+  });
+
+  test('handles user interaction', () => {
+    const handleClick = jest.fn();
+    render(<MyComponent onClick={handleClick} />);
+    fireEvent.click(screen.getByRole('button'));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+#### Example Electron Module Test
+
+```javascript
+const { jest } = require('@jest/globals');
+jest.mock('electron');
+
+const MyModule = require('../myModule');
+
+describe('MyModule', () => {
+  test('performs expected operation', async () => {
+    const result = await MyModule.doSomething();
+    expect(result).toBe('expected');
+  });
+});
+```
+
+### Coverage Requirements
+
+The project enforces minimum coverage thresholds:
+- **Lines**: 90%
+- **Branches**: 90%
+- **Functions**: 90%
+- **Statements**: 90%
+
+**Your PR will fail CI if coverage drops below these thresholds.**
+
+To check coverage locally:
+```bash
+pnpm test:coverage
+# View HTML report
+open coverage/index.html  # macOS
+start coverage/index.html # Windows
+xdg-open coverage/index.html # Linux
 ```
 
 ### Manual Testing
@@ -182,7 +278,10 @@ docs(readme): update installation instructions
 ### PR Checklist
 
 - [ ] Code follows existing style and conventions
-- [ ] All tests pass (`pnpm test:platforms`)
+- [ ] All tests pass (`pnpm test`)
+- [ ] Test coverage meets 90% minimum requirement (`pnpm test:coverage`)
+- [ ] New code includes appropriate tests
+- [ ] Cross-platform tests pass (`pnpm test:platforms`)
 - [ ] Documentation updated if needed
 - [ ] Commit messages follow conventional format
 - [ ] No sensitive information (API keys, etc.) committed

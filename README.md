@@ -18,6 +18,7 @@ Groq Desktop features MCP server support for all function calling capable models
 - [Troubleshooting](#troubleshooting)
 - [Building for Production](#building-for-production)
 - [Configuration](#configuration)
+- [Testing](#testing)
 - [Contributing](#contributing)
 <img width="450" alt="Screenshot 2025-08-05 at 11 32 04 AM" src="https://github.com/user-attachments/assets/d4fd9224-8186-4117-bdeb-b477f8a42d49" />
 <br>
@@ -153,6 +154,69 @@ You can obtain a Groq API key by signing up at [https://console.groq.com](https:
 ### Dark Mode
 
 The app now includes a dark mode toggle in the Settings page. Toggle between light and dark themes, and your preference will persist across app restarts. The theme is applied immediately when changed and stored in your user settings.
+
+## Testing
+
+This project maintains a minimum test coverage of 90% across all metrics (lines, branches, functions, and statements). We use Jest as our testing framework with separate configurations for React components, Electron main process, and integration tests.
+
+### Running Tests
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests with coverage report
+pnpm test:coverage
+
+# Run only unit tests
+pnpm test:unit
+
+# Run only integration tests
+pnpm test:integration
+
+# Run tests in watch mode (for development)
+pnpm test:watch
+
+# Run tests in CI mode (with coverage enforcement)
+pnpm test:ci
+```
+
+### Test Structure
+
+- `__tests__/unit/` - Unit tests for utilities and helpers
+- `__tests__/integration/` - Integration tests for API and system interactions
+- `src/renderer/components/__tests__/` - React component tests
+- `electron/__tests__/` - Electron main process module tests
+
+### Coverage Requirements
+
+All code must maintain at least 90% test coverage. The build will fail if coverage falls below:
+- Lines: 90%
+- Branches: 90%
+- Functions: 90%
+- Statements: 90%
+
+View the coverage report after running tests:
+```bash
+pnpm test:coverage
+open coverage/index.html
+```
+
+### Writing Tests
+
+When contributing new features or fixes:
+1. Write tests for all new code
+2. Ensure existing tests still pass
+3. Update tests when modifying existing functionality
+4. Follow the existing test patterns in the codebase
+
+### Continuous Integration
+
+Tests are automatically run on all pull requests and pushes to main. The CI pipeline:
+- Runs tests across multiple OS (Ubuntu, macOS, Windows)
+- Checks coverage thresholds
+- Reports coverage metrics on PRs
+- Uploads coverage reports to Codecov
 
 ## Contributing
 

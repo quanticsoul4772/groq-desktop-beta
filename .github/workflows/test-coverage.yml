@@ -1,0 +1,138 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests and Check Coverage
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Run linter
+      run: npx eslint . --max-warnings 0
+      continue-on-error: true
+    
+    - name: Run tests with coverage
+      run: pnpm run test:ci
+      env:
+        NODE_ENV: test
+        CI: true
+    
+    - name: Generate coverage report
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      run: |
+        echo "## Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+        if [ -f coverage/coverage-summary.json ]; then
+          node -e "
+          const coverage = require('./coverage/coverage-summary.json');
+          const total = coverage.total;
+          console.log('| Lines | ' + total.lines.pct + '% |');
+          console.log('| Branches | ' + total.branches.pct + '% |');
+          console.log('| Functions | ' + total.functions.pct + '% |');
+          console.log('| Statements | ' + total.statements.pct + '% |');
+          " >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: Upload coverage artifacts
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+    
+    - name: Check coverage thresholds
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      run: |
+        node -e "
+        const coverage = require('./coverage/coverage-summary.json');
+        const total = coverage.total;
+        const threshold = 90;
+        
+        console.log('Coverage Summary:');
+        console.log('Lines:', total.lines.pct + '%');
+        console.log('Branches:', total.branches.pct + '%');
+        console.log('Functions:', total.functions.pct + '%');
+        console.log('Statements:', total.statements.pct + '%');
+        
+        const failed = [];
+        if (total.lines.pct < threshold) failed.push('Lines');
+        if (total.branches.pct < threshold) failed.push('Branches');
+        if (total.functions.pct < threshold) failed.push('Functions');
+        if (total.statements.pct < threshold) failed.push('Statements');
+        
+        if (failed.length > 0) {
+          console.error('\\nCoverage threshold not met for:', failed.join(', '));
+          console.error('Required: ' + threshold + '%');
+          process.exit(1);
+        } else {
+          console.log('\\nAll coverage thresholds met!');
+        }
+        "
+    
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+          const total = coverage.total;
+          
+          const comment = `## 📊 Test Coverage Report
+          
+          | Metric | Coverage | Status |
+          |--------|----------|--------|
+          | Lines | ${total.lines.pct}% | ${total.lines.pct >= 90 ? '✅' : '❌'} |
+          | Branches | ${total.branches.pct}% | ${total.branches.pct >= 90 ? '✅' : '❌'} |
+          | Functions | ${total.functions.pct}% | ${total.functions.pct >= 90 ? '✅' : '❌'} |
+          | Statements | ${total.statements.pct}% | ${total.statements.pct >= 90 ? '✅' : '❌'} |
+          
+          **Minimum Required Coverage:** 90%
+          
+          ${total.lines.pct >= 90 && total.branches.pct >= 90 && total.functions.pct >= 90 && total.statements.pct >= 90 
+            ? '✅ All coverage thresholds met!' 
+            : '❌ Coverage thresholds not met. Please add more tests.'}`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

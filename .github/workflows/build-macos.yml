@@ -28,6 +28,12 @@ jobs:
     - name: Install dependencies
       run: pnpm install
 
+    - name: Run tests and check coverage
+      run: |
+        echo "Running test suite with coverage..."
+        pnpm run test:ci
+        echo "All tests passed and coverage thresholds met ✅"
+
     - name: Extract App Info
       id: get_info
       run: |
