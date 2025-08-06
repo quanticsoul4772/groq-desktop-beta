@@ -137,6 +137,9 @@ pnpm test:watch
 # Run CI tests (enforces coverage thresholds)
 pnpm test:ci
 
+# Run complete pipeline checks locally (mirrors GitHub Actions)
+pnpm test:pipeline
+
 # Test Jest cache performance
 pnpm test:cache-perf
 
@@ -301,10 +304,24 @@ docs(readme): update installation instructions
 7. **Describe your changes** clearly in the PR description
 8. **Link any related issues** using "Fixes #issue-number"
 
+### Before Every Push
+
+**⚠️ IMPORTANT: Run `pnpm test:pipeline` before every push.**
+
+This command mirrors your GitHub Actions workflow locally by running:
+1. ESLint with `--max-warnings 0` (same as CI)
+2. Complete test suite with coverage (`pnpm test:ci`)
+3. Coverage threshold validation (90% minimum)
+
+This prevents CI failures and ensures your code meets all quality gates before submission.
+
+To skip the pre-push hook in emergencies: `git push --no-verify`
+
 ### PR Checklist
 
 - [ ] Code follows existing style and conventions
-- [ ] **All tests pass** (`pnpm test:ci`)
+- [ ] **Pipeline checks pass locally** (`pnpm test:pipeline`)
+- [ ] **All tests pass** (`pnpm test:ci`) 
 - [ ] **Coverage remains ≥90%** (`pnpm test:coverage`)
 - [ ] **New features have unit tests** (in `__tests__/unit/`)
 - [ ] **API changes have integration tests** (in `__tests__/integration/`)
