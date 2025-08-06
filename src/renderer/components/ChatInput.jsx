@@ -169,6 +169,76 @@ function ChatInput({
 		}
 	}, []);
 
+	// Handle context menu commands
+	useEffect(() => {
+		const handleContextMenuCommand = (command) => {
+			if (!textareaRef.current) return;
+			
+			const textarea = textareaRef.current;
+			
+			switch (command.command) {
+				case 'replace-misspelled-word':
+					// Replace the misspelled word with the suggestion
+					const currentValue = textarea.value;
+					const start = textarea.selectionStart;
+					const end = textarea.selectionEnd;
+					
+					// Find the misspelled word around the cursor position
+					const beforeCursor = currentValue.substring(0, start);
+					const afterCursor = currentValue.substring(end);
+					
+					// Simple word boundary detection
+					const wordBoundaryRegex = /\W/;
+					let wordStart = start;
+					let wordEnd = end;
+					
+					// Find start of word
+					while (wordStart > 0 && !wordBoundaryRegex.test(currentValue[wordStart - 1])) {
+						wordStart--;
+					}
+					
+					// Find end of word
+					while (wordEnd < currentValue.length && !wordBoundaryRegex.test(currentValue[wordEnd])) {
+						wordEnd++;
+					}
+					
+					const wordAtCursor = currentValue.substring(wordStart, wordEnd);
+					
+					// Replace if it matches the misspelled word
+					if (wordAtCursor.toLowerCase() === command.misspelledWord.toLowerCase()) {
+						const newValue = currentValue.substring(0, wordStart) + command.suggestion + currentValue.substring(wordEnd);
+						setMessage(newValue);
+						
+						// Set cursor position after the replaced word
+						setTimeout(() => {
+							textarea.focus();
+							textarea.setSelectionRange(wordStart + command.suggestion.length, wordStart + command.suggestion.length);
+						}, 0);
+					}
+					break;
+				
+				case 'cut':
+					if (textarea.selectionStart !== textarea.selectionEnd) {
+						document.execCommand('cut');
+					}
+					break;
+					
+				case 'copy':
+					if (textarea.selectionStart !== textarea.selectionEnd) {
+						document.execCommand('copy');
+					}
+					break;
+					
+				case 'paste':
+					document.execCommand('paste');
+					break;
+			}
+		};
+
+		const unsubscribe = window.electron.onContextMenuCommand(handleContextMenuCommand);
+		return unsubscribe;
+	}, []);
+
 	// Focus the textarea when loading changes from true to false (completion finished)
 	useEffect(() => {
 		// Check if loading just changed from true to false
@@ -293,6 +363,65 @@ function ChatInput({
 	const maxHeightThreshold = rowHeight ? (rowHeight * 10) + 24 : null;
 	const isAtMaxHeight = textareaHeight && maxHeightThreshold && textareaHeight >= maxHeightThreshold;
 
+	// Handle context menu (right-click) events
+	const handleContextMenu = (e) => {
+		e.preventDefault();
+		
+		const textarea = e.target;
+		const cursorPosition = textarea.selectionStart;
+		const text = textarea.value;
+		const selectedText = text.substring(textarea.selectionStart, textarea.selectionEnd);
+		
+		const params = {
+			isEditable: true,
+			selectionText: selectedText,
+		};
+		
+		// Only add spell check suggestions if spell check is enabled
+		if (enableSpellCheck) {
+			// Get the word at cursor position for spell checking
+			let wordStart = cursorPosition;
+			let wordEnd = cursorPosition;
+			
+			// Find word boundaries
+			const wordBoundaryRegex = /\W/;
+			while (wordStart > 0 && !wordBoundaryRegex.test(text[wordStart - 1])) {
+				wordStart--;
+			}
+			while (wordEnd < text.length && !wordBoundaryRegex.test(text[wordEnd])) {
+				wordEnd++;
+			}
+			
+			const wordAtCursor = text.substring(wordStart, wordEnd);
+			
+			// Check if word appears to be misspelled (basic heuristic for demo)
+			// In a real implementation, you'd integrate with Electron's built-in spell checker
+			if (wordAtCursor && wordAtCursor.length > 3 && /^[a-zA-Z]+$/.test(wordAtCursor)) {
+				// Simple demo - suggest corrections for certain "misspelled" words
+				// This would normally come from Electron's spell checker API
+				const commonMisspellings = {
+					'teh': ['the'],
+					'recieve': ['receive'],
+					'occured': ['occurred'],
+					'seperate': ['separate'],
+					'definately': ['definitely'],
+					'accomodate': ['accommodate'],
+					'embarass': ['embarrass'],
+					'neccessary': ['necessary'],
+					'existance': ['existence'],
+					'occurance': ['occurrence']
+				};
+				
+				if (commonMisspellings[wordAtCursor.toLowerCase()]) {
+					params.misspelledWord = wordAtCursor;
+					params.dictionarySuggestions = commonMisspellings[wordAtCursor.toLowerCase()];
+				}
+			}
+		}
+		
+		window.electron.showContextMenu(params);
+	};
+
 	return (
     <div 
 			className={cn(
@@ -370,6 +499,7 @@ function ChatInput({
 							onKeyDown={handleKeyDown}
 							onPaste={handlePaste}
 							onHeightChange={handleHeightChange}
+							onContextMenu={handleContextMenu}
 							placeholder={isDragOver ? "Drop files here..." : "Ask Groq anything..."}
 							spellCheck={enableSpellCheck}
 							autoCorrect={enableSpellCheck ? "on" : "off"}
