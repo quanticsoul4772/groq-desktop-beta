@@ -11,14 +11,15 @@ function createWindow(screen, BrowserWindow) {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js') // Assumes preload.js is in the same directory
-    }
+      preload: path.join(__dirname, 'preload.js'), // Assumes preload.js is in the same directory
+    },
   });
 
   // Determine URL based on environment
-  const startUrl = process.env.NODE_ENV === 'development'
-    ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, '../dist/index.html')}`;
+  const startUrl =
+    process.env.NODE_ENV === 'development'
+      ? 'http://localhost:5173'
+      : `file://${path.join(__dirname, '../dist/index.html')}`;
 
   mainWindow.loadURL(startUrl);
 
@@ -31,47 +32,51 @@ function createWindow(screen, BrowserWindow) {
     mainWindow = null;
   });
 
-  console.log("Main window created.");
+  console.log('Main window created.');
   return mainWindow;
 }
 
 function initializeWindowManager(app, screen, shell, BrowserWindow) {
-    if (!app || !screen || !shell || !BrowserWindow) {
-        console.error("WindowManager Initialization Error: Missing required Electron modules.");
-        return null; // Indicate failure
+  if (!app || !screen || !shell || !BrowserWindow) {
+    console.error('WindowManager Initialization Error: Missing required Electron modules.');
+    return null; // Indicate failure
+  }
+
+  console.log('WindowManager Initializing...');
+
+  // Create the window when the app is ready (though it might be called later by main.js)
+  // We return the created window, main.js stores it.
+  const createdWindow = createWindow(screen, BrowserWindow);
+
+  // Handle external links to open in default browser
+  createdWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      shell.openExternal(url);
+      return { action: 'deny' };
     }
+    return { action: 'allow' };
+  });
 
-    console.log("WindowManager Initializing...");
+  // Handle clicked links in the app (prevent navigation away from app)
+  createdWindow.webContents.on('will-navigate', (event, url) => {
+    const startUrlDev = 'http://localhost:5173';
+    const startUrlProd = `file://${path.join(__dirname, '../dist/index.html')}`;
 
-    // Create the window when the app is ready (though it might be called later by main.js)
-    // We return the created window, main.js stores it.
-    const createdWindow = createWindow(screen, BrowserWindow);
+    // Check if the URL is external
+    if (
+      (url.startsWith('http:') || url.startsWith('https:')) &&
+      url !== startUrlDev &&
+      !url.startsWith(startUrlDev) && // Allow dev server navigation
+      url !== startUrlProd
+    ) {
+      // Allow prod file navigation
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
-    // Handle external links to open in default browser
-    createdWindow.webContents.setWindowOpenHandler(({ url }) => {
-      if (url.startsWith('http:') || url.startsWith('https:')) {
-        shell.openExternal(url);
-        return { action: 'deny' };
-      }
-      return { action: 'allow' };
-    });
-
-    // Handle clicked links in the app (prevent navigation away from app)
-    createdWindow.webContents.on('will-navigate', (event, url) => {
-      const startUrlDev = 'http://localhost:5173';
-      const startUrlProd = `file://${path.join(__dirname, '../dist/index.html')}`;
-
-      // Check if the URL is external
-      if ((url.startsWith('http:') || url.startsWith('https:')) &&
-           url !== startUrlDev && !url.startsWith(startUrlDev) && // Allow dev server navigation
-           url !== startUrlProd) { // Allow prod file navigation
-        event.preventDefault();
-        shell.openExternal(url);
-      }
-    });
-
-    // App lifecycle events handled here
-    /*
+  // App lifecycle events handled here
+  /*
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {
         app.quit();
@@ -79,20 +84,20 @@ function initializeWindowManager(app, screen, shell, BrowserWindow) {
     });
     */
 
-    app.on('activate', () => {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (BrowserWindow.getAllWindows().length === 0) {
-        // Re-create the window using the original function (or potentially a simplified one)
-        // Ensure mainWindow reference is updated if needed elsewhere
-        mainWindow = createWindow(screen, BrowserWindow);
-        // Note: mainWindow is module-scoped, so this updates the reference used internally.
-        // If main.js needs the new instance, this module should perhaps emit an event or provide a getter.
-      }
-    });
+  app.on('activate', () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) {
+      // Re-create the window using the original function (or potentially a simplified one)
+      // Ensure mainWindow reference is updated if needed elsewhere
+      mainWindow = createWindow(screen, BrowserWindow);
+      // Note: mainWindow is module-scoped, so this updates the reference used internally.
+      // If main.js needs the new instance, this module should perhaps emit an event or provide a getter.
+    }
+  });
 
-    console.log("WindowManager Initialized and app lifecycle events attached.");
-    return createdWindow; // Return the initially created window instance
+  console.log('WindowManager Initialized and app lifecycle events attached.');
+  return createdWindow; // Return the initially created window instance
 }
 
 // Optional: Provide a getter if other modules need the *current* mainWindow instance
@@ -101,6 +106,6 @@ function initializeWindowManager(app, screen, shell, BrowserWindow) {
 // }
 
 module.exports = {
-    initializeWindowManager,
-    // getMainWindow
-}; 
+  initializeWindowManager,
+  // getMainWindow
+};

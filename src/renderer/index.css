@@ -62,11 +62,11 @@
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-colors;
   }
-  
+
   .btn-primary {
     @apply bg-[#F55036] text-white hover:bg-[#F55036]/90;
   }
-  
+
   .input {
     @apply px-4 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground;
   }
@@ -87,12 +87,13 @@
   .markdown-content h2 {
     @apply text-xl font-bold my-3;
   }
-  
+
   .markdown-content h3 {
     @apply text-lg font-bold my-2;
   }
 
-  .markdown-content ul, .markdown-content ol {
+  .markdown-content ul,
+  .markdown-content ol {
     @apply pl-6 my-2;
   }
 
@@ -124,7 +125,8 @@
     @apply border-collapse border border-border my-2;
   }
 
-  .markdown-content th, .markdown-content td {
+  .markdown-content th,
+  .markdown-content td {
     @apply border border-border px-2 py-1;
   }
 }
@@ -238,4 +240,4 @@ select#model-select {
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;
-} 
+}

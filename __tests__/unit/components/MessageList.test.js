@@ -1,6 +1,9 @@
-import React from 'react';
+import _React from 'react';
 import { render, screen } from '@testing-library/react';
 import MessageList from '../../../src/renderer/components/MessageList';
+
+// Explicitly reference to satisfy ESLint
+MessageList;
 
 // Mock Message component
 jest.mock('../../../src/renderer/components/Message', () => {
@@ -18,7 +21,7 @@ describe('MessageList', () => {
   const defaultProps = {
     messages: [],
     onToolCallExecute: jest.fn(),
-    loading: false
+    loading: false,
   };
 
   beforeEach(() => {
@@ -27,7 +30,7 @@ describe('MessageList', () => {
 
   test('renders empty state when no messages', () => {
     render(<MessageList {...defaultProps} />);
-    
+
     expect(screen.getByText(/start a conversation/i)).toBeInTheDocument();
   });
 
@@ -35,7 +38,7 @@ describe('MessageList', () => {
     const messages = [
       { role: 'user', content: 'Hello' },
       { role: 'assistant', content: 'Hi there!' },
-      { role: 'user', content: 'How are you?' }
+      { role: 'user', content: 'How are you?' },
     ];
 
     render(<MessageList {...defaultProps} messages={messages} />);
@@ -48,7 +51,7 @@ describe('MessageList', () => {
   test('marks last message correctly', () => {
     const messages = [
       { role: 'user', content: 'First message' },
-      { role: 'assistant', content: 'Last message' }
+      { role: 'assistant', content: 'Last message' },
     ];
 
     render(<MessageList {...defaultProps} messages={messages} />);
@@ -62,16 +65,10 @@ describe('MessageList', () => {
 
   test('passes onToolCallExecute to messages', () => {
     const mockToolExecute = jest.fn();
-    const messages = [
-      { role: 'assistant', content: 'Message with tools' }
-    ];
+    const messages = [{ role: 'assistant', content: 'Message with tools' }];
 
     render(
-      <MessageList 
-        {...defaultProps} 
-        messages={messages}
-        onToolCallExecute={mockToolExecute}
-      />
+      <MessageList {...defaultProps} messages={messages} onToolCallExecute={mockToolExecute} />
     );
 
     expect(screen.getByTestId('message-assistant')).toBeInTheDocument();
@@ -86,10 +83,7 @@ describe('MessageList', () => {
 
   test('scrolls to bottom on new messages', () => {
     const { rerender } = render(
-      <MessageList 
-        {...defaultProps} 
-        messages={[{ role: 'user', content: 'First' }]}
-      />
+      <MessageList {...defaultProps} messages={[{ role: 'user', content: 'First' }]} />
     );
 
     // Mock scrollIntoView
@@ -98,11 +92,11 @@ describe('MessageList', () => {
 
     // Add new message
     rerender(
-      <MessageList 
-        {...defaultProps} 
+      <MessageList
+        {...defaultProps}
         messages={[
           { role: 'user', content: 'First' },
-          { role: 'assistant', content: 'Second' }
+          { role: 'assistant', content: 'Second' },
         ]}
       />
     );
@@ -113,11 +107,11 @@ describe('MessageList', () => {
 
   test('handles streaming messages', () => {
     const messages = [
-      { 
-        role: 'assistant', 
-        content: 'Streaming response...', 
-        isStreaming: true 
-      }
+      {
+        role: 'assistant',
+        content: 'Streaming response...',
+        isStreaming: true,
+      },
     ];
 
     render(<MessageList {...defaultProps} messages={messages} />);
@@ -132,7 +126,7 @@ describe('MessageList', () => {
       { role: 'user', content: 'Valid message' },
       { role: 'assistant', content: '' },
       { role: 'user', content: null },
-      { role: 'assistant', content: 'Another valid message' }
+      { role: 'assistant', content: 'Another valid message' },
     ];
 
     render(<MessageList {...defaultProps} messages={messages} />);
@@ -147,7 +141,7 @@ describe('MessageList', () => {
     const messages = [
       { role: 'user', content: 'First' },
       { role: 'assistant', content: 'Second' },
-      { role: 'user', content: 'Third' }
+      { role: 'user', content: 'Third' },
     ];
 
     render(<MessageList {...defaultProps} messages={messages} />);
@@ -158,11 +152,11 @@ describe('MessageList', () => {
 
   test('handles messages with images', () => {
     const messages = [
-      { 
-        role: 'user', 
+      {
+        role: 'user',
         content: 'Here is an image',
-        images: ['data:image/png;base64,iVBOR...']
-      }
+        images: ['data:image/png;base64,iVBOR...'],
+      },
     ];
 
     render(<MessageList {...defaultProps} messages={messages} />);
@@ -183,18 +177,12 @@ describe('MessageList', () => {
     Element.prototype.scrollIntoView = mockScrollIntoView;
 
     const { rerender } = render(
-      <MessageList 
-        {...defaultProps} 
-        messages={[{ role: 'user', content: 'Hello' }]}
-      />
+      <MessageList {...defaultProps} messages={[{ role: 'user', content: 'Hello' }]} />
     );
 
     // Update existing message (streaming scenario)
     rerender(
-      <MessageList 
-        {...defaultProps} 
-        messages={[{ role: 'user', content: 'Hello world' }]}
-      />
+      <MessageList {...defaultProps} messages={[{ role: 'user', content: 'Hello world' }]} />
     );
 
     expect(mockScrollIntoView).toHaveBeenCalled();

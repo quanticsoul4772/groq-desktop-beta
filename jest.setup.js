@@ -7,17 +7,17 @@ global.electron = {
     send: jest.fn(),
     on: jest.fn(),
     removeListener: jest.fn(),
-    invoke: jest.fn()
+    invoke: jest.fn(),
   },
   contextBridge: {
-    exposeInMainWorld: jest.fn()
-  }
+    exposeInMainWorld: jest.fn(),
+  },
 };
 
 // Mock window.electron
 Object.defineProperty(window, 'electron', {
   value: global.electron,
-  writable: true
+  writable: true,
 });
 
 // Mock localStorage
@@ -25,7 +25,7 @@ const localStorageMock = {
   getItem: jest.fn(),
   setItem: jest.fn(),
   removeItem: jest.fn(),
-  clear: jest.fn()
+  clear: jest.fn(),
 };
 global.localStorage = localStorageMock;
 
@@ -38,20 +38,16 @@ const originalWarn = console.warn;
 
 beforeAll(() => {
   console.error = jest.fn((...args) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render')
-    ) {
+    if (typeof args[0] === 'string' && args[0].includes('Warning: ReactDOM.render')) {
       return;
     }
     originalError.call(console, ...args);
   });
-  
+
   console.warn = jest.fn((...args) => {
     if (
       typeof args[0] === 'string' &&
-      (args[0].includes('componentWillReceiveProps') ||
-       args[0].includes('componentWillMount'))
+      (args[0].includes('componentWillReceiveProps') || args[0].includes('componentWillMount'))
     ) {
       return;
     }

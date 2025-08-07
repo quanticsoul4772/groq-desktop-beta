@@ -9,7 +9,7 @@ let appInstance; // Store app instance for paths
 // Helper function to get the correct base path for scripts
 function getScriptsBasePath() {
   if (!appInstance) {
-    console.error("App instance not initialized in commandResolver.");
+    console.error('App instance not initialized in commandResolver.');
     // Fallback to a potentially incorrect path, hoping __dirname is somewhat relevant
     return path.join(__dirname, 'scripts');
   }
@@ -34,7 +34,7 @@ function findCommandUsingWhich(command) {
     // Escape command to prevent injection issues if needed
     const safeCommand = command.replace(/[^a-zA-Z0-9_\-.]/g, ''); // Basic sanitization
     if (safeCommand !== command) {
-        console.warn(`Command '${command}' sanitized to '${safeCommand}' for command lookup.`);
+      console.warn(`Command '${command}' sanitized to '${safeCommand}' for command lookup.`);
     }
     if (!safeCommand) return null; // Don't run lookup with empty string
 
@@ -48,7 +48,9 @@ function findCommandUsingWhich(command) {
     }
 
     if (commandPath && checkPathExists(commandPath)) {
-      console.log(`Found ${command} using '${process.platform === 'win32' ? 'where' : 'which'}' at ${commandPath}`);
+      console.log(
+        `Found ${command} using '${process.platform === 'win32' ? 'where' : 'which'}' at ${commandPath}`
+      );
       return commandPath;
     }
   } catch (error) {
@@ -60,10 +62,10 @@ function findCommandUsingWhich(command) {
 
 // Refactored function to resolve command paths
 function resolveCommandPath(command) {
-    if (!appInstance) {
-        console.error("App instance not initialized in commandResolver. Cannot resolve command path.");
-        return command; // Return original command as fallback
-    }
+  if (!appInstance) {
+    console.error('App instance not initialized in commandResolver. Cannot resolve command path.');
+    return command; // Return original command as fallback
+  }
   // If not a simple command name, return as is (likely already a path)
   if (!command || typeof command !== 'string' || command.includes('/') || command.includes('\\')) {
     return command;
@@ -85,60 +87,66 @@ function resolveCommandPath(command) {
 
   // Base known paths
   const baseNpxPaths = ['/usr/local/bin/npx', '/usr/bin/npx'];
-  const nvmNpxPaths = homeDir ? [
-      `${homeDir}/.nvm/versions/node/v18/bin/npx`,
-      `${homeDir}/.nvm/versions/node/v20/bin/npx`,
-      `${homeDir}/.nvm/versions/node/v22/bin/npx`,
-      `${homeDir}/.nvm/current/bin/npx`
-  ] : [];
+  const nvmNpxPaths = homeDir
+    ? [
+        `${homeDir}/.nvm/versions/node/v18/bin/npx`,
+        `${homeDir}/.nvm/versions/node/v20/bin/npx`,
+        `${homeDir}/.nvm/versions/node/v22/bin/npx`,
+        `${homeDir}/.nvm/current/bin/npx`,
+      ]
+    : [];
 
   // Get platform-specific file extension and prefix for script files
   const getScriptInfo = () => {
     if (process.platform === 'win32') {
       return {
         ext: process.env.SHELL && process.env.SHELL.includes('powershell') ? '.ps1' : '.cmd',
-        prefix: ''
+        prefix: '',
       };
     } else if (process.platform === 'linux') {
       return {
         ext: '.sh',
-        prefix: '-linux'
+        prefix: '-linux',
       };
     } else {
       return {
         ext: '.sh',
-        prefix: ''
+        prefix: '',
       };
     }
   };
-  
+
   const scriptInfo = getScriptInfo();
 
   // Define configurations for commands that might need special handling or scripts
   const specialCommands = {
-    'npx': {
+    npx: {
       scriptName: `run-npx${scriptInfo.prefix}${scriptInfo.ext}`,
-      knownPaths: process.platform === 'win32' ? [] : [...baseNpxPaths, ...nvmNpxPaths] // Only use paths on Unix
+      knownPaths: process.platform === 'win32' ? [] : [...baseNpxPaths, ...nvmNpxPaths], // Only use paths on Unix
     },
-    'uvx': {
+    uvx: {
       scriptName: `run-uvx${scriptInfo.prefix}${scriptInfo.ext}`,
-      knownPaths: process.platform === 'win32' ? [] : [
-        '/opt/homebrew/bin/uvx',
-        '/usr/local/bin/uvx',
-        '/usr/bin/uvx',
-        `${homeDir}/.local/bin/uvx`
-      ].filter(p => !!homeDir || !p.includes(homeDir))
+      knownPaths:
+        process.platform === 'win32'
+          ? []
+          : [
+              '/opt/homebrew/bin/uvx',
+              '/usr/local/bin/uvx',
+              '/usr/bin/uvx',
+              `${homeDir}/.local/bin/uvx`,
+            ].filter((p) => !!homeDir || !p.includes(homeDir)),
     },
-    'docker': { scriptName: `run-docker${scriptInfo.prefix}${scriptInfo.ext}` },
-    'node': { scriptName: `run-node${scriptInfo.prefix}${scriptInfo.ext}` },
-    'deno': {
+    docker: { scriptName: `run-docker${scriptInfo.prefix}${scriptInfo.ext}` },
+    node: { scriptName: `run-node${scriptInfo.prefix}${scriptInfo.ext}` },
+    deno: {
       scriptName: `run-deno${scriptInfo.prefix}${scriptInfo.ext}`,
-      knownPaths: process.platform === 'win32' ? [] : [
-        `${homeDir}/.deno/bin/deno`,
-        '/opt/homebrew/bin/deno',
-        '/usr/local/bin/deno'
-      ].filter(p => !!homeDir || !p.includes(homeDir))
-    }
+      knownPaths:
+        process.platform === 'win32'
+          ? []
+          : [`${homeDir}/.deno/bin/deno`, '/opt/homebrew/bin/deno', '/usr/local/bin/deno'].filter(
+              (p) => !!homeDir || !p.includes(homeDir)
+            ),
+    },
     // Add other commands as needed
   };
 
@@ -156,8 +164,8 @@ function resolveCommandPath(command) {
     // 1b. If script doesn't exist, check known common paths (if defined)
     if (config.knownPaths) {
       for (const knownPath of config.knownPaths) {
-         // Expand ~ if present (already done via homeDir)
-         const expandedPath = knownPath;
+        // Expand ~ if present (already done via homeDir)
+        const expandedPath = knownPath;
         if (checkPathExists(expandedPath)) {
           console.log(`Found ${command} at known path: ${expandedPath}`);
           return expandedPath;
@@ -174,23 +182,25 @@ function resolveCommandPath(command) {
   }
 
   // 3. Final fallback: If 'which' fails, return the original command name.
-  console.log(`Could not resolve path for '${command}' via script, known paths, or 'which'. Assuming it's in PATH.`);
+  console.log(
+    `Could not resolve path for '${command}' via script, known paths, or 'which'. Assuming it's in PATH.`
+  );
   return command;
 }
 
 function initializeCommandResolver(app) {
-    appInstance = app;
-    isAppPackaged = app.isPackaged;
-    console.log('CommandResolver Initialized. App packaged:', isAppPackaged);
-    // Pre-calculate script base path maybe?
-    // getScriptsBasePath();
+  appInstance = app;
+  isAppPackaged = app.isPackaged;
+  console.log('CommandResolver Initialized. App packaged:', isAppPackaged);
+  // Pre-calculate script base path maybe?
+  // getScriptsBasePath();
 }
 
 module.exports = {
-    initializeCommandResolver,
-    resolveCommandPath,
-    // Expose others if needed directly, but resolveCommandPath is the main interface
-    // getScriptsBasePath,
-    // checkPathExists,
-    // findCommandUsingWhich
-}; 
+  initializeCommandResolver,
+  resolveCommandPath,
+  // Expose others if needed directly, but resolveCommandPath is the main interface
+  // getScriptsBasePath,
+  // checkPathExists,
+  // findCommandUsingWhich
+};

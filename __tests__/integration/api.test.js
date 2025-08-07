@@ -19,30 +19,30 @@ describe('API Integration Tests', () => {
   describe('Groq API Integration', () => {
     test('handles successful API response', async () => {
       const mockResponse = {
-        choices: [{
-          message: {
-            role: 'assistant',
-            content: 'Test response from Groq'
-          }
-        }]
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: 'Test response from Groq',
+            },
+          },
+        ],
       };
 
       // Mock Groq API endpoint
-      nock('https://api.groq.com')
-        .post('/openai/v1/chat/completions')
-        .reply(200, mockResponse);
+      nock('https://api.groq.com').post('/openai/v1/chat/completions').reply(200, mockResponse);
 
       // Simulate API call
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer test-key'
+          Authorization: 'Bearer test-key',
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: 'Hello' }]
-        })
+          messages: [{ role: 'user', content: 'Hello' }],
+        }),
       });
 
       const data = await response.json();
@@ -59,12 +59,14 @@ describe('API Integration Tests', () => {
       nock('https://api.groq.com')
         .post('/openai/v1/chat/completions')
         .reply(200, {
-          choices: [{
-            message: {
-              role: 'assistant',
-              content: 'Success after retry'
-            }
-          }]
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: 'Success after retry',
+              },
+            },
+          ],
         });
 
       // Implement retry logic
@@ -72,27 +74,27 @@ describe('API Integration Tests', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer test-key'
+          Authorization: 'Bearer test-key',
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: 'Hello' }]
-        })
+          messages: [{ role: 'user', content: 'Hello' }],
+        }),
       });
 
       if (response.status === 429) {
         // Wait and retry
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-key'
+            Authorization: 'Bearer test-key',
           },
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
-            messages: [{ role: 'user', content: 'Hello' }]
-          })
+            messages: [{ role: 'user', content: 'Hello' }],
+          }),
         });
       }
 
@@ -111,31 +113,29 @@ describe('API Integration Tests', () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-key'
+            Authorization: 'Bearer test-key',
           },
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
-            messages: [{ role: 'user', content: 'Hello' }]
-          })
+            messages: [{ role: 'user', content: 'Hello' }],
+          }),
         })
       ).rejects.toThrow();
     });
 
     test('handles malformed API responses', async () => {
-      nock('https://api.groq.com')
-        .post('/openai/v1/chat/completions')
-        .reply(200, 'Invalid JSON');
+      nock('https://api.groq.com').post('/openai/v1/chat/completions').reply(200, 'Invalid JSON');
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer test-key'
+          Authorization: 'Bearer test-key',
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: 'Hello' }]
-        })
+          messages: [{ role: 'user', content: 'Hello' }],
+        }),
       });
 
       await expect(response.json()).rejects.toThrow();
@@ -148,13 +148,11 @@ describe('API Integration Tests', () => {
       const mockMCPResponse = {
         tools: [
           { name: 'search', description: 'Search tool' },
-          { name: 'calculate', description: 'Calculator tool' }
-        ]
+          { name: 'calculate', description: 'Calculator tool' },
+        ],
       };
 
-      nock('http://localhost:3000')
-        .get('/tools')
-        .reply(200, mockMCPResponse);
+      nock('http://localhost:3000').get('/tools').reply(200, mockMCPResponse);
 
       const response = await fetch('http://localhost:3000/tools');
       const data = await response.json();
@@ -174,7 +172,7 @@ describe('API Integration Tests', () => {
 
       await expect(
         fetch('http://localhost:3000/tools', {
-          signal: controller.signal
+          signal: controller.signal,
         })
       ).rejects.toThrow();
 
@@ -197,14 +195,14 @@ describe('API Integration Tests', () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-key'
+            Authorization: 'Bearer test-key',
           },
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
-            messages: [{ role: 'user', content: 'Hello' }]
-          })
+            messages: [{ role: 'user', content: 'Hello' }],
+          }),
         });
-        
+
         // Check if the response is an error
         if (!response.ok && response.status >= 500) {
           failureCount++;

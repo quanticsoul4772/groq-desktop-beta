@@ -46,14 +46,14 @@ class ContextCapture {
   async captureContext() {
     try {
       console.log('Capturing context from active application...');
-      
+
       const context = {
         timestamp: Date.now(),
         source: null,
         text: null,
         title: null,
         appName: null,
-        contextType: null
+        contextType: null,
       };
 
       // Try multiple context capture methods
@@ -61,12 +61,14 @@ class ContextCapture {
         this.getSelectedText(),
         this.getClipboardContent(),
         this.getActiveApplication(),
-        this.getWindowTitle()
+        this.getWindowTitle(),
       ]);
 
       // Process results
-      const selectedText = captureResults[0].status === 'fulfilled' ? captureResults[0].value : null;
-      const clipboardText = captureResults[1].status === 'fulfilled' ? captureResults[1].value : null;
+      const selectedText =
+        captureResults[0].status === 'fulfilled' ? captureResults[0].value : null;
+      const clipboardText =
+        captureResults[1].status === 'fulfilled' ? captureResults[1].value : null;
       const activeApp = captureResults[2].status === 'fulfilled' ? captureResults[2].value : null;
       const windowTitle = captureResults[3].status === 'fulfilled' ? captureResults[3].value : null;
 
@@ -92,7 +94,7 @@ class ContextCapture {
       console.log('Context captured:', {
         type: context.contextType,
         length: context.text?.length || 0,
-        app: context.appName
+        app: context.appName,
       });
 
       // Call the callback with captured context
@@ -103,7 +105,7 @@ class ContextCapture {
       return context;
     } catch (error) {
       console.error('Error capturing context:', error);
-      
+
       // Fallback context
       const fallbackContext = {
         timestamp: Date.now(),
@@ -111,7 +113,7 @@ class ContextCapture {
         title: 'Context Capture Failed',
         source: 'System',
         contextType: 'fallback',
-        error: error.message
+        error: error.message,
       };
 
       if (this.onContextCaptured) {
@@ -126,7 +128,7 @@ class ContextCapture {
   async getSelectedText() {
     return new Promise((resolve, reject) => {
       const platform = os.platform();
-      
+
       if (platform === 'darwin') {
         // macOS: Use AppleScript to get selected text
         const script = `
@@ -143,7 +145,7 @@ class ContextCapture {
             end tell
           end tell
         `;
-        
+
         exec(`osascript -e '${script}'`, (error, stdout) => {
           if (error) {
             reject(error);
@@ -175,7 +177,7 @@ class ContextCapture {
           Start-Sleep -Milliseconds 100
           Get-Clipboard
         `;
-        
+
         exec(`powershell -Command "${script}"`, (error, stdout) => {
           if (error) {
             reject(error);
@@ -206,7 +208,7 @@ class ContextCapture {
   async getActiveApplication() {
     return new Promise((resolve, reject) => {
       const platform = os.platform();
-      
+
       if (platform === 'darwin') {
         const script = `
           tell application "System Events"
@@ -214,7 +216,7 @@ class ContextCapture {
             return frontApp
           end tell
         `;
-        
+
         exec(`osascript -e '${script}'`, (error, stdout) => {
           if (error) {
             reject(error);
@@ -223,14 +225,17 @@ class ContextCapture {
           }
         });
       } else if (platform === 'linux') {
-        exec('xprop -id $(xprop -root 32x \'\\t$0\' _NET_ACTIVE_WINDOW | cut -f 2) WM_CLASS', (error, stdout) => {
-          if (error) {
-            reject(error);
-          } else {
-            const match = stdout.match(/WM_CLASS\(STRING\) = "([^"]+)"/);
-            resolve(match ? match[1] : 'Unknown');
+        exec(
+          "xprop -id $(xprop -root 32x '\\t$0' _NET_ACTIVE_WINDOW | cut -f 2) WM_CLASS",
+          (error, stdout) => {
+            if (error) {
+              reject(error);
+            } else {
+              const match = stdout.match(/WM_CLASS\(STRING\) = "([^"]+)"/);
+              resolve(match ? match[1] : 'Unknown');
+            }
           }
-        });
+        );
       } else if (platform === 'win32') {
         const script = `
           Add-Type -TypeDefinition '
@@ -250,7 +255,7 @@ class ContextCapture {
           $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
           if ($process) { $process.ProcessName } else { "Unknown" }
         `;
-        
+
         exec(`powershell -Command "${script}"`, (error, stdout) => {
           if (error) {
             reject(error);
@@ -268,7 +273,7 @@ class ContextCapture {
   async getWindowTitle() {
     return new Promise((resolve, reject) => {
       const platform = os.platform();
-      
+
       if (platform === 'darwin') {
         const script = `
           tell application "System Events"
@@ -283,7 +288,7 @@ class ContextCapture {
             end tell
           end tell
         `;
-        
+
         exec(`osascript -e '${script}'`, (error, stdout) => {
           if (error) {
             reject(error);
@@ -292,14 +297,17 @@ class ContextCapture {
           }
         });
       } else if (platform === 'linux') {
-        exec('xprop -id $(xprop -root 32x \'\\t$0\' _NET_ACTIVE_WINDOW | cut -f 2) _NET_WM_NAME', (error, stdout) => {
-          if (error) {
-            reject(error);
-          } else {
-            const match = stdout.match(/_NET_WM_NAME\(UTF8_STRING\) = "([^"]+)"/);
-            resolve(match ? match[1] : 'Unknown Window');
+        exec(
+          "xprop -id $(xprop -root 32x '\\t$0' _NET_ACTIVE_WINDOW | cut -f 2) _NET_WM_NAME",
+          (error, stdout) => {
+            if (error) {
+              reject(error);
+            } else {
+              const match = stdout.match(/_NET_WM_NAME\(UTF8_STRING\) = "([^"]+)"/);
+              resolve(match ? match[1] : 'Unknown Window');
+            }
           }
-        });
+        );
       } else if (platform === 'win32') {
         const script = `
           Add-Type -TypeDefinition '
@@ -318,7 +326,7 @@ class ContextCapture {
           [Win32]::GetWindowText($hwnd, $title, $title.Capacity)
           return $title.ToString()
         `;
-        
+
         exec(`powershell -Command "${script}"`, (error, stdout) => {
           if (error) {
             reject(error);
@@ -333,4 +341,4 @@ class ContextCapture {
   }
 }
 
-module.exports = ContextCapture; 
+module.exports = ContextCapture;

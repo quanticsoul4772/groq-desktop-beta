@@ -12,8 +12,8 @@ function ToolApprovalModal({ toolCall, onApprove }) {
     const argsString = func.arguments ?? '{}';
     args = JSON.parse(argsString);
   } catch (e) {
-    console.error("Failed to parse tool call arguments for modal:", func.arguments, e);
-    args = { parse_error: "Could not parse arguments", original_arguments: func.arguments };
+    console.error('Failed to parse tool call arguments for modal:', func.arguments, e);
+    args = { parse_error: 'Could not parse arguments', original_arguments: func.arguments };
   }
 
   const handleChoice = (choice) => {
@@ -23,12 +23,13 @@ function ToolApprovalModal({ toolCall, onApprove }) {
   };
 
   // More subtle button styling, consistent text color
-  const baseButtonClass = "w-full sm:w-auto px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-opacity-70 transition duration-150 ease-in-out text-sm font-medium text-gray-100";
+  const baseButtonClass =
+    'w-full sm:w-auto px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-opacity-70 transition duration-150 ease-in-out text-sm font-medium text-gray-100';
   const buttonClasses = {
-    once:   `bg-blue-700 hover:bg-blue-800 focus:ring-blue-500 ${baseButtonClass}`,
+    once: `bg-blue-700 hover:bg-blue-800 focus:ring-blue-500 ${baseButtonClass}`,
     always: `bg-green-700 hover:bg-green-800 focus:ring-green-600 ${baseButtonClass}`,
-    yolo:   `bg-yellow-700 hover:bg-yellow-800 focus:ring-yellow-600 ${baseButtonClass}`,
-    deny:   `bg-red-700 hover:bg-red-800 focus:ring-red-600 ${baseButtonClass}`,
+    yolo: `bg-yellow-700 hover:bg-yellow-800 focus:ring-yellow-600 ${baseButtonClass}`,
+    deny: `bg-red-700 hover:bg-red-800 focus:ring-red-600 ${baseButtonClass}`,
   }; // Note: YOLO button text is now gray-100 like others
 
   return (
@@ -36,8 +37,19 @@ function ToolApprovalModal({ toolCall, onApprove }) {
       <div className="bg-gray-800 w-full max-w-xl rounded-lg shadow-xl overflow-hidden flex flex-col border border-gray-700">
         <div className="p-4 border-b border-gray-700">
           <h2 className="text-lg font-semibold text-gray-100 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2 text-blue-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             Tool Call Approval Required
           </h2>
@@ -45,14 +57,18 @@ function ToolApprovalModal({ toolCall, onApprove }) {
 
         <div className="p-5 overflow-y-auto max-h-[60vh] space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Tool Name:</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+              Tool Name:
+            </label>
             <div className="bg-gray-900 p-3 rounded text-gray-200 font-mono text-sm border border-gray-700">
               {toolName}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">Arguments:</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider">
+              Arguments:
+            </label>
             <div className="rounded-md text-sm overflow-x-auto border border-gray-700">
               <SyntaxHighlighter
                 language="json"
@@ -62,7 +78,7 @@ function ToolApprovalModal({ toolCall, onApprove }) {
                   margin: 0,
                   padding: '0.75rem',
                   fontSize: '0.875rem',
-                  backgroundColor: '#1E1E1E'
+                  backgroundColor: '#1E1E1E',
                 }}
                 codeTagProps={{ style: { fontFamily: "'Fira Code', monospace" } }}
                 wrapLongLines={true}
@@ -74,29 +90,20 @@ function ToolApprovalModal({ toolCall, onApprove }) {
         </div>
 
         <div className="p-4 border-t border-gray-700 bg-gray-700/30 flex flex-wrap gap-3 justify-end">
-           <button
-            onClick={() => handleChoice('once')}
-            className={buttonClasses.once}
-          >
+          <button onClick={() => handleChoice('once')} className={buttonClasses.once}>
             Allow Once
           </button>
-          <button
-            onClick={() => handleChoice('always')}
-            className={buttonClasses.always}
-          >
+          <button onClick={() => handleChoice('always')} className={buttonClasses.always}>
             Always Allow This Tool
           </button>
-           <button
+          <button
             onClick={() => handleChoice('yolo')}
             title="Always Allow Any Tool (Warning: potential security risk from prompt injection)"
             className={buttonClasses.yolo}
           >
             YOLO Mode
           </button>
-          <button
-            onClick={() => handleChoice('deny')}
-            className={buttonClasses.deny}
-          >
+          <button onClick={() => handleChoice('deny')} className={buttonClasses.deny}>
             Deny
           </button>
         </div>
@@ -105,4 +112,4 @@ function ToolApprovalModal({ toolCall, onApprove }) {
   );
 }
 
-export default ToolApprovalModal; 
+export default ToolApprovalModal;

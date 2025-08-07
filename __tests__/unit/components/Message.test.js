@@ -1,7 +1,10 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import _React from 'react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Message from '../../../src/renderer/components/Message';
+
+// Explicitly reference to satisfy ESLint
+Message;
 
 // Mock MarkdownRenderer
 jest.mock('../../../src/renderer/components/MarkdownRenderer', () => {
@@ -27,7 +30,7 @@ describe('Message', () => {
   const defaultProps = {
     onToolCallExecute: jest.fn(),
     allMessages: [],
-    isLastMessage: false
+    isLastMessage: false,
   };
 
   beforeEach(() => {
@@ -43,7 +46,7 @@ describe('Message', () => {
   test('renders user message', () => {
     const message = {
       role: 'user',
-      content: 'Hello, how are you?'
+      content: 'Hello, how are you?',
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -55,7 +58,7 @@ describe('Message', () => {
   test('renders assistant message', () => {
     const message = {
       role: 'assistant',
-      content: 'I am doing well, thank you!'
+      content: 'I am doing well, thank you!',
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -69,7 +72,7 @@ describe('Message', () => {
     const message = {
       role: 'assistant',
       content: 'Response content',
-      reasoning: 'This is my reasoning process'
+      reasoning: 'This is my reasoning process',
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -78,7 +81,7 @@ describe('Message', () => {
     expect(reasoningButton).toBeInTheDocument();
 
     await user.click(reasoningButton);
-    
+
     expect(screen.getByText('This is my reasoning process')).toBeInTheDocument();
   });
 
@@ -87,9 +90,7 @@ describe('Message', () => {
     const message = {
       role: 'assistant',
       content: 'Response content',
-      executed_tools: [
-        { name: 'search', result: 'Search completed' }
-      ]
+      executed_tools: [{ name: 'search', result: 'Search completed' }],
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -98,7 +99,7 @@ describe('Message', () => {
     expect(toolsButton).toBeInTheDocument();
 
     await user.click(toolsButton);
-    
+
     expect(screen.getByText('search')).toBeInTheDocument();
   });
 
@@ -111,10 +112,10 @@ describe('Message', () => {
           id: 'call_1',
           function: {
             name: 'search',
-            arguments: '{"query": "test"}'
-          }
-        }
-      ]
+            arguments: '{"query": "test"}',
+          },
+        },
+      ],
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -130,9 +131,9 @@ describe('Message', () => {
       tool_calls: [
         {
           id: 'call_1',
-          function: { name: 'search', arguments: '{}' }
-        }
-      ]
+          function: { name: 'search', arguments: '{}' },
+        },
+      ],
     };
 
     const allMessages = [
@@ -140,8 +141,8 @@ describe('Message', () => {
       {
         role: 'tool',
         tool_call_id: 'call_1',
-        content: 'Tool result content'
-      }
+        content: 'Tool result content',
+      },
     ];
 
     render(<Message message={message} allMessages={allMessages} {...defaultProps} />);
@@ -158,17 +159,13 @@ describe('Message', () => {
       tool_calls: [
         {
           id: 'call_1',
-          function: { name: 'test_tool', arguments: '{}' }
-        }
-      ]
+          function: { name: 'test_tool', arguments: '{}' },
+        },
+      ],
     };
 
     render(
-      <Message 
-        message={message} 
-        onToolCallExecute={mockOnToolCallExecute}
-        {...defaultProps} 
-      />
+      <Message message={message} onToolCallExecute={mockOnToolCallExecute} {...defaultProps} />
     );
 
     const executeButton = screen.getByText('Execute');
@@ -181,7 +178,7 @@ describe('Message', () => {
     const message = {
       role: 'assistant',
       content: 'Streaming...',
-      isStreaming: true
+      isStreaming: true,
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -194,7 +191,7 @@ describe('Message', () => {
       role: 'assistant',
       content: 'Response in progress',
       isStreaming: true,
-      liveReasoning: 'Live reasoning content'
+      liveReasoning: 'Live reasoning content',
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -208,9 +205,7 @@ describe('Message', () => {
       role: 'assistant',
       content: 'Tools executing',
       isStreaming: true,
-      liveExecutedTools: [
-        { name: 'live_tool', result: 'Live result' }
-      ]
+      liveExecutedTools: [{ name: 'live_tool', result: 'Live result' }],
     };
 
     render(<Message message={message} {...defaultProps} />);
@@ -221,7 +216,7 @@ describe('Message', () => {
   test('renders children when provided', () => {
     const message = {
       role: 'assistant',
-      content: 'Message with children'
+      content: 'Message with children',
     };
 
     render(
@@ -238,21 +233,21 @@ describe('Message', () => {
     const message = {
       role: 'assistant',
       content: 'Message content',
-      reasoning: 'Detailed reasoning'
+      reasoning: 'Detailed reasoning',
     };
 
     render(<Message message={message} {...defaultProps} />);
 
     const reasoningButton = screen.getByText(/show reasoning/i);
-    
+
     // Initially hidden
     expect(screen.queryByText('Detailed reasoning')).not.toBeInTheDocument();
-    
+
     // Show reasoning
     await user.click(reasoningButton);
     expect(screen.getByText('Detailed reasoning')).toBeInTheDocument();
     expect(screen.getByText(/hide reasoning/i)).toBeInTheDocument();
-    
+
     // Hide reasoning again
     await user.click(screen.getByText(/hide reasoning/i));
     expect(screen.queryByText('Detailed reasoning')).not.toBeInTheDocument();
@@ -263,23 +258,21 @@ describe('Message', () => {
     const message = {
       role: 'assistant',
       content: 'Message content',
-      executed_tools: [
-        { name: 'test_tool', result: 'Tool output' }
-      ]
+      executed_tools: [{ name: 'test_tool', result: 'Tool output' }],
     };
 
     render(<Message message={message} {...defaultProps} />);
 
     const toolsButton = screen.getByText(/show executed tools/i);
-    
+
     // Initially hidden
     expect(screen.queryByText('test_tool')).not.toBeInTheDocument();
-    
+
     // Show tools
     await user.click(toolsButton);
     expect(screen.getByText('test_tool')).toBeInTheDocument();
     expect(screen.getByText(/hide executed tools/i)).toBeInTheDocument();
-    
+
     // Hide tools again
     await user.click(screen.getByText(/hide executed tools/i));
     expect(screen.queryByText('test_tool')).not.toBeInTheDocument();

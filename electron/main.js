@@ -1,7 +1,7 @@
 const { app } = require('electron');
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
-const { globalShortcut } = require('electron');
+const { globalShortcut: _globalShortcut } = require('electron');
 
 // Create ~/Library/Logs/Groq Desktop if it does not exist
 app.setAppLogsPath();
@@ -9,7 +9,7 @@ const logFile = path.join(app.getPath('logs'), 'main.log');
 const logStream = fs.createWriteStream(logFile, { flags: 'a' });
 
 // Mirror every console.* call to the file
-['log', 'info', 'warn', 'error'].forEach(fn => {
+['log', 'info', 'warn', 'error'].forEach((fn) => {
   const orig = console[fn].bind(console);
   console[fn] = (...args) => {
     orig(...args);
@@ -44,7 +44,7 @@ const PopupWindowManager = require('./popupWindow');
 let mainWindow;
 
 // Variable to hold loaded model context sizes
-let modelContextSizes = {};
+let _modelContextSizes = {};
 
 // --- Context Sharing State ---
 let pendingContext = null; // Holds context to be passed to renderer
@@ -55,12 +55,12 @@ let popupWindowManager = null; // Popup window manager instance
 function handleUrlProtocol(url) {
   // Handle groq://context?text=...&title=... URLs
   if (!url.startsWith('groq://')) return null;
-  
+
   try {
     const urlObj = new URL(url);
     if (urlObj.pathname === '/context') {
       const context = {};
-      
+
       if (urlObj.searchParams.has('text')) {
         context.text = decodeURIComponent(urlObj.searchParams.get('text'));
       }
@@ -70,19 +70,19 @@ function handleUrlProtocol(url) {
       if (urlObj.searchParams.has('source')) {
         context.source = decodeURIComponent(urlObj.searchParams.get('source'));
       }
-      
+
       return Object.keys(context).length > 0 ? context : null;
     }
   } catch (error) {
     console.error('Error parsing URL protocol:', error);
   }
-  
+
   return null;
 }
 
 function setContextForRenderer(context) {
   pendingContext = context;
-  
+
   // If main window is already created, send the context immediately
   if (mainWindow && mainWindow.webContents) {
     mainWindow.webContents.send('external-context', context);
@@ -93,12 +93,12 @@ function setContextForRenderer(context) {
 function initializeContextCapture() {
   contextCapture = new ContextCapture();
   popupWindowManager = new PopupWindowManager();
-  
+
   // Register global hotkey with callback that opens popup
   const success = contextCapture.registerGlobalHotkey((capturedContext) => {
     console.log('Context captured via global hotkey:', capturedContext);
     lastCapturedContext = capturedContext;
-    
+
     // Check if popup is enabled in settings
     const settings = loadSettings();
     if (settings.popupEnabled === false) {
@@ -109,7 +109,7 @@ function initializeContextCapture() {
         mainWindow.focus();
         // If you want to pass context to the main window, you can do it here
         if (mainWindow.webContents) {
-            mainWindow.webContents.send('context-captured', capturedContext);
+          mainWindow.webContents.send('context-captured', capturedContext);
         }
       }
       return;
@@ -123,17 +123,17 @@ function initializeContextCapture() {
     } catch (error) {
       console.error('Error opening popup window:', error);
     }
-    
+
     // Also notify main window if it exists (for legacy support)
     if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
       mainWindow.webContents.send('context-captured', capturedContext);
     }
   });
-  
+
   if (!success) {
     console.error('Failed to register global hotkey for context capture');
   }
-  
+
   return success;
 }
 
@@ -142,7 +142,7 @@ function cleanupContextCapture() {
     contextCapture.unregisterGlobalHotkey();
     contextCapture = null;
   }
-  
+
   if (popupWindowManager) {
     popupWindowManager.closePopup();
     popupWindowManager = null;
@@ -165,9 +165,9 @@ app.on('second-instance', (event, commandLine) => {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
   }
-  
+
   // Check if there's a protocol URL in the command line
-  const protocolUrl = commandLine.find(arg => arg.startsWith('groq://'));
+  const protocolUrl = commandLine.find((arg) => arg.startsWith('groq://'));
   if (protocolUrl) {
     const context = handleUrlProtocol(protocolUrl);
     if (context) {
@@ -189,19 +189,19 @@ app.on('open-url', (event, url) => {
 
 // App initialization sequence
 app.whenReady().then(async () => {
-  console.log("App Ready. Initializing...");
+  console.log('App Ready. Initializing...');
 
   // Initialize command resolver first (might be needed by others)
   initializeCommandResolver(app);
 
   // Load model context sizes from the JS module
   try {
-    modelContextSizes = MODEL_CONTEXT_SIZES;
+    _modelContextSizes = MODEL_CONTEXT_SIZES;
     console.log('Successfully loaded shared model definitions.');
   } catch (error) {
     console.error('Failed to load shared model definitions:', error);
-    modelContextSizes = { 'default': { context: 8192, vision_supported: false } }; // Fallback
-  }// --- Early IPC Handlers required by popup and renderer before other init --- //
+    _modelContextSizes = { default: { context: 8192, vision_supported: false } }; // Fallback
+  } // --- Early IPC Handlers required by popup and renderer before other init --- //
   ipcMain.handle('get-model-configs', async () => {
     // Return a copy to prevent accidental modification with custom models merged in
     const currentSettings = loadSettings();
@@ -225,9 +225,9 @@ app.whenReady().then(async () => {
   // Initialize window manager and get the main window instance
   mainWindow = initializeWindowManager(app, screen, shell, BrowserWindow);
   if (!mainWindow) {
-      console.error("Fatal: Main window could not be created. Exiting.");
-      app.quit();
-      return;
+    console.error('Fatal: Main window could not be created. Exiting.');
+    app.quit();
+    return;
   }
 
   // When the main window is closed, deregister its reference
@@ -246,7 +246,9 @@ app.whenReady().then(async () => {
   const contextCaptureSuccess = initializeContextCapture();
   if (contextCaptureSuccess) {
     console.log('Context capture system initialized successfully');
-    console.log('Press Cmd+G (Mac) or Ctrl+G (Windows/Linux) from any app to open popup with context');
+    console.log(
+      'Press Cmd+G (Mac) or Ctrl+G (Windows/Linux) from any app to open popup with context'
+    );
   } else {
     console.warn('Context capture system failed to initialize');
   }
@@ -258,11 +260,13 @@ app.whenReady().then(async () => {
   mcpManager.initializeMcpHandlers(ipcMain, app, mainWindow, loadSettings, resolveCommandPath);
 
   // Initialize Auth Manager (check will now work)
-  console.log("[Main Init] Initializing Auth Manager...");
+  console.log('[Main Init] Initializing Auth Manager...');
   if (mcpManager && typeof mcpManager.retryConnectionAfterAuth === 'function') {
-      authManager.initialize(mcpManager.retryConnectionAfterAuth);
+    authManager.initialize(mcpManager.retryConnectionAfterAuth);
   } else {
-       console.error("[Main] CRITICAL: mcpManager or retryConnectionAfterAuth not available for AuthManager initialization!");
+    console.error(
+      '[Main] CRITICAL: mcpManager or retryConnectionAfterAuth not available for AuthManager initialization!'
+    );
   }
 
   // --- Register Core App IPC Handlers --- //
@@ -270,33 +274,46 @@ app.whenReady().then(async () => {
   ipcMain.on('chat-stream', async (event, messages, model) => {
     const currentSettings = loadSettings();
     const { discoveredTools } = mcpManager.getMcpState(); // Use module object
-    
+
     // Merge base models with custom models from settings
     const mergedModelContextSizes = getModelContextSizes(currentSettings.customModels || {});
-    
-    chatHandler.handleChatStream(event, messages, model, currentSettings, mergedModelContextSizes, discoveredTools);
+
+    chatHandler.handleChatStream(
+      event,
+      messages,
+      model,
+      currentSettings,
+      mergedModelContextSizes,
+      discoveredTools
+    );
   });
 
   // Tool execution (use module object)
-  console.log("[Main Init] Registering execute-tool-call...");
+  console.log('[Main Init] Registering execute-tool-call...');
   ipcMain.handle('execute-tool-call', async (event, toolCall) => {
     const currentSettings = loadSettings();
     const { discoveredTools, mcpClients } = mcpManager.getMcpState(); // Use module object
-    return toolHandler.handleExecuteToolCall(event, toolCall, discoveredTools, mcpClients, currentSettings);
+    return toolHandler.handleExecuteToolCall(
+      event,
+      toolCall,
+      discoveredTools,
+      mcpClients,
+      currentSettings
+    );
   });
-  console.log("[Main Init] execute-tool-call registered successfully");
+  console.log('[Main Init] execute-tool-call registered successfully');
 
   // Model configs handler already registered above during early initialization
-  console.log("[Main Init] Continuing with remaining handlers...");
+  console.log('[Main Init] Continuing with remaining handlers...');
 
   // --- Context Sharing IPC Handlers (Legacy - for URL/CLI context) ---
-  console.log("[Main Init] Registering context handlers...");
+  console.log('[Main Init] Registering context handlers...');
   ipcMain.handle('get-pending-context', async () => {
     const context = pendingContext;
     pendingContext = null; // Clear after retrieval
     return context;
   });
-  console.log("[Main Init] get-pending-context registered");
+  console.log('[Main Init] get-pending-context registered');
 
   ipcMain.handle('clear-context', async () => {
     pendingContext = null;
@@ -340,31 +357,35 @@ app.whenReady().then(async () => {
 
   // --- Context Menu IPC Handler ---
   ipcMain.on('show-context-menu', (event, params) => {
-    const { Menu, MenuItem } = require('electron');
+    const { Menu } = require('electron');
     const template = [];
-    
+
     // Check if spell check is enabled and we have a misspelled word
-    if (params.misspelledWord && params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
+    if (
+      params.misspelledWord &&
+      params.dictionarySuggestions &&
+      params.dictionarySuggestions.length > 0
+    ) {
       // Add spell check suggestions (up to 5)
       const suggestions = params.dictionarySuggestions.slice(0, 5);
       suggestions.forEach((suggestion) => {
         template.push({
           label: suggestion,
           click: () => {
-            event.sender.send('context-menu-command', { 
-              command: 'replace-misspelled-word', 
+            event.sender.send('context-menu-command', {
+              command: 'replace-misspelled-word',
               suggestion,
-              misspelledWord: params.misspelledWord 
+              misspelledWord: params.misspelledWord,
             });
-          }
+          },
         });
       });
-      
+
       if (suggestions.length > 0) {
         template.push({ type: 'separator' });
       }
     }
-    
+
     // Standard edit menu items
     if (params.isEditable) {
       if (params.selectionText) {
@@ -373,33 +394,33 @@ app.whenReady().then(async () => {
           accelerator: 'CmdOrCtrl+X',
           click: () => {
             event.sender.send('context-menu-command', { command: 'cut' });
-          }
+          },
         });
         template.push({
           label: 'Copy',
-          accelerator: 'CmdOrCtrl+C', 
+          accelerator: 'CmdOrCtrl+C',
           click: () => {
             event.sender.send('context-menu-command', { command: 'copy' });
-          }
+          },
         });
       } else {
         // Show disabled cut/copy when no selection
         template.push({
           label: 'Cut',
-          enabled: false
+          enabled: false,
         });
         template.push({
           label: 'Copy',
-          enabled: false
+          enabled: false,
         });
       }
-      
+
       template.push({
         label: 'Paste',
         accelerator: 'CmdOrCtrl+V',
         click: () => {
           event.sender.send('context-menu-command', { command: 'paste' });
-        }
+        },
       });
     } else if (params.selectionText) {
       // For non-editable areas, only show copy
@@ -408,10 +429,10 @@ app.whenReady().then(async () => {
         accelerator: 'CmdOrCtrl+C',
         click: () => {
           event.sender.send('context-menu-command', { command: 'copy' });
-        }
+        },
       });
     }
-    
+
     if (template.length > 0) {
       const menu = Menu.buildFromTemplate(template);
       menu.popup({ window: BrowserWindow.fromWebContents(event.sender) });
@@ -419,29 +440,29 @@ app.whenReady().then(async () => {
   });
 
   // --- Auth IPC Handler ---
-  console.log("[Main Init] Registering auth handler...");
+  console.log('[Main Init] Registering auth handler...');
   ipcMain.handle('start-mcp-auth-flow', async (event, { serverId, serverUrl }) => {
-      if (!serverId || !serverUrl) {
-          throw new Error("Missing serverId or serverUrl for start-mcp-auth-flow");
-      }
-      try {
-          console.log(`[Main] Handling start-mcp-auth-flow for ${serverId}`);
-          const result = await authManager.initiateAuthFlow(serverId, serverUrl);
-          return result;
-      } catch (error) {
-          console.error(`[Main] Error handling start-mcp-auth-flow for ${serverId}:`, error);
-          throw error;
-      }
+    if (!serverId || !serverUrl) {
+      throw new Error('Missing serverId or serverUrl for start-mcp-auth-flow');
+    }
+    try {
+      console.log(`[Main] Handling start-mcp-auth-flow for ${serverId}`);
+      const result = await authManager.initiateAuthFlow(serverId, serverUrl);
+      return result;
+    } catch (error) {
+      console.error(`[Main] Error handling start-mcp-auth-flow for ${serverId}:`, error);
+      throw error;
+    }
   });
 
   // --- Post-initialization Tasks --- //
-  console.log("Setting up MCP auto-connection timeout...");
+  console.log('Setting up MCP auto-connection timeout...');
   setTimeout(() => {
-      console.log("Triggering MCP auto-connection...");
-      mcpManager.connectConfiguredMcpServers(); // Use module object
+    console.log('Triggering MCP auto-connection...');
+    mcpManager.connectConfiguredMcpServers(); // Use module object
   }, 1000);
 
-  console.log("Initialization complete.");
+  console.log('Initialization complete.');
 });
 
 // Make sure we handle single instance properly
@@ -461,6 +482,6 @@ app.on('before-quit', () => {
 
 // Keep any essential top-level error handling or logging if needed
 process.on('uncaughtException', (error) => {
-    console.error('Unhandled Exception:', error);
-    // Optionally: Log to file, show dialog, etc.
+  console.error('Unhandled Exception:', error);
+  // Optionally: Log to file, show dialog, etc.
 });

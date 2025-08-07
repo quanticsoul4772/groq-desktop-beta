@@ -11,7 +11,7 @@ const commands = ['node', 'deno', 'npx', 'docker', 'uvx'];
 
 // Test for all platforms
 const platforms = ['darwin', 'linux', 'win32'];
-platforms.forEach(platform => {
+platforms.forEach((platform) => {
   console.log(`\n--- Simulating ${platform} ---`);
   simulatePlatform(platform);
 });
@@ -23,36 +23,36 @@ function simulatePlatform(platform) {
     scriptInfo = {
       ext: '.cmd', // We'll use .cmd as default Windows script
       prefix: '',
-      separator: ';'
+      separator: ';',
     };
   } else if (platform === 'linux') {
     scriptInfo = {
       ext: '.sh',
       prefix: '-linux',
-      separator: ':'
+      separator: ':',
     };
   } else {
     scriptInfo = {
       ext: '.sh',
       prefix: '',
-      separator: ':'
+      separator: ':',
     };
   }
-  
+
   console.log(`Platform separator: ${scriptInfo.separator}`);
-  
+
   // Build expected script paths
   const scriptsBaseDir = path.join(__dirname, 'electron', 'scripts');
-  
+
   // Check each command
-  commands.forEach(cmd => {
+  commands.forEach((cmd) => {
     const expectedScriptName = `run-${cmd}${scriptInfo.prefix}${scriptInfo.ext}`;
     const expectedScriptPath = path.join(scriptsBaseDir, expectedScriptName);
     const scriptExists = fs.existsSync(expectedScriptPath);
-    
+
     console.log(`${cmd} -> ${expectedScriptName}`);
     console.log(`  - Script exists: ${scriptExists ? '✅' : '❌'}`);
-    
+
     if (scriptExists) {
       // For Windows, also check the PowerShell version
       if (platform === 'win32') {
@@ -63,25 +63,31 @@ function simulatePlatform(platform) {
       }
     }
   });
-  
+
   // Count total scripts for this platform
   const expectedExt = scriptInfo.ext;
   const expectedPrefix = scriptInfo.prefix;
   let scriptCount = 0;
-  
-  fs.readdirSync(scriptsBaseDir).forEach(file => {
-    if (file.endsWith(expectedExt) && 
-        (expectedPrefix === '' ? !file.includes('-linux') : file.includes(expectedPrefix))) {
+
+  fs.readdirSync(scriptsBaseDir).forEach((file) => {
+    if (
+      file.endsWith(expectedExt) &&
+      (expectedPrefix === '' ? !file.includes('-linux') : file.includes(expectedPrefix))
+    ) {
       scriptCount++;
     }
   });
-  
+
   const totalCommands = platform === 'win32' ? commands.length * 2 : commands.length;
-  console.log(`\nTotal scripts for ${platform}: ${scriptCount}/${totalCommands === 10 ? 5 : totalCommands}`);
-  
+  console.log(
+    `\nTotal scripts for ${platform}: ${scriptCount}/${totalCommands === 10 ? 5 : totalCommands}`
+  );
+
   if (platform === 'win32') {
     // Additional check for PowerShell scripts
-    const psScriptCount = fs.readdirSync(scriptsBaseDir).filter(file => file.endsWith('.ps1')).length;
+    const psScriptCount = fs
+      .readdirSync(scriptsBaseDir)
+      .filter((file) => file.endsWith('.ps1')).length;
     console.log(`PowerShell scripts: ${psScriptCount}/5`);
   }
 }

@@ -3,5 +3,5 @@ module.exports = {
   __esModule: true,
   default: function remarkGfm() {
     return (tree) => tree;
-  }
+  },
 };

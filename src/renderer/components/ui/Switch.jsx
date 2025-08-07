@@ -15,4 +15,4 @@ const Switch = ({ checked, onChange, id }) => {
   );
 };
 
-export default Switch; 
+export default Switch;

@@ -3,6 +3,7 @@
 ## Quick Start
 
 ### Running Tests with Cache
+
 ```bash
 # Standard test run (uses cache if available)
 pnpm test
@@ -37,11 +38,13 @@ The project is configured with Jest caching for improved test performance:
 ### Testing Cache Effectiveness
 
 Run the performance test script:
+
 ```bash
 pnpm test:cache-perf
 ```
 
 This will:
+
 1. Clear existing cache
 2. Run tests without cache (cold start)
 3. Run tests with cache (warm start)
@@ -50,17 +53,21 @@ This will:
 ## GitHub Actions Integration
 
 The `.github/workflows/test.yml` workflow includes:
+
 - Automatic Jest cache management
 - Cache key based on dependencies and config
 - Graceful cache restoration with fallback
 
 ### Cache Key Strategy
+
 ```yaml
 key: jest-cache-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml', '**/jest.config.js') }}
 ```
 
 ### Monitoring in CI
+
 Look for these messages in GitHub Actions logs:
+
 - `Cache restored from key: jest-cache-...` - Cache hit
 - `Cache not found for key: jest-cache-...` - Cache miss
 - `Cache saved with key: jest-cache-...` - Cache saved
@@ -68,7 +75,9 @@ Look for these messages in GitHub Actions logs:
 ## Troubleshooting
 
 ### Cache Issues
+
 If tests behave unexpectedly:
+
 ```bash
 # Clear cache and run tests
 pnpm test:clear-cache && pnpm test
@@ -78,6 +87,7 @@ pnpm test --no-cache
 ```
 
 ### Performance Not Improving?
+
 1. Check cache directory exists: `ls -la .jest-cache/`
 2. Verify cache is being used: `pnpm test --showConfig | grep cache`
 3. Run performance test: `pnpm test:cache-perf`

@@ -5,6 +5,9 @@ const os = require('os');
 // Import the settingsManager
 const { loadSettings, initializeSettingsHandlers } = require('./electron/settingsManager.js');
 
+// Explicitly reference to satisfy ESLint
+loadSettings && initializeSettingsHandlers;
+
 // Import shared test utilities for performance optimization
 const { testUtils } = require('./test-utils.js');
 
@@ -35,7 +38,7 @@ function assertEquals(actual, expected, message) {
   }
 }
 
-function assertDeepEquals(actual, expected, message) {
+function _assertDeepEquals(actual, expected, message) {
   if (!deepEquals(actual, expected)) {
     throw new Error(
       `${message || `Deep comparison failed: objects are not structurally equal\nExpected: ${JSON.stringify(expected, null, 2)}\nReceived: ${JSON.stringify(actual, null, 2)}`}`
@@ -100,7 +103,7 @@ function assertTrue(condition, message) {
 }
 
 // Mock app instance for testing
-const mockApp = {
+const _mockApp = {
   getPath: (type) => {
     if (type === 'userData') {
       return testUtils.getTestDir('mockApp');
@@ -144,7 +147,7 @@ const originalEnv = setupTestEnvironment();
 // Test 1: loadSettings without app instance returns minimal defaults
 test('loadSettings without app instance returns minimal defaults', () => {
   // Temporarily clear the app instance
-  const settingsManagerModule = require('./electron/settingsManager.js');
+  const _settingsManagerModule = require('./electron/settingsManager.js');
 
   // Clear any cached app instance by requiring fresh module
   delete require.cache[require.resolve('./electron/settingsManager.js')];

@@ -28,7 +28,7 @@ pnpm build            # Build Vite frontend
 pnpm build:electron   # Build Electron app with electron-builder
 pnpm dist             # Build everything (frontend + electron)
 pnpm dist:mac         # Build for macOS
-pnpm dist:win         # Build for Windows  
+pnpm dist:win         # Build for Windows
 pnpm dist:linux       # Build for Linux
 
 # Testing
@@ -81,7 +81,7 @@ npx eslint .          # Run ESLint (no dedicated script, but ESLint is configure
    - Platform-specific scripts in `/electron/scripts`
    - Dynamic command resolution based on OS
 
-3. **Tool Approval System**: 
+3. **Tool Approval System**:
    - Three modes: prompt (default), always allow, YOLO mode
    - Approval state stored in localStorage
    - Modal UI for tool execution approval

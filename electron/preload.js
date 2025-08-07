@@ -7,12 +7,12 @@ contextBridge.exposeInMainWorld('electron', {
   reloadSettings: () => ipcRenderer.invoke('reload-settings'),
   // Chat API - streaming only
   executeToolCall: (toolCall) => ipcRenderer.invoke('execute-tool-call', toolCall),
-  
+
   // Streaming API events
   startChatStream: (messages, model) => {
     // Start a new chat stream
     ipcRenderer.send('chat-stream', messages, model);
-    
+
     // Setup event listeners for streaming responses
     return {
       onStart: (callback) => {
@@ -51,17 +51,17 @@ contextBridge.exposeInMainWorld('electron', {
         ipcRenderer.removeAllListeners('chat-stream-tool-execution');
         ipcRenderer.removeAllListeners('chat-stream-complete');
         ipcRenderer.removeAllListeners('chat-stream-error');
-      }
+      },
     };
   },
-  
+
   // MCP related functions
   connectMcpServer: (serverConfig) => ipcRenderer.invoke('connect-mcp-server', serverConfig),
   disconnectMcpServer: (serverId) => ipcRenderer.invoke('disconnect-mcp-server', serverId),
   getMcpTools: () => ipcRenderer.invoke('get-mcp-tools'),
   // Function to get model configurations
   getModelConfigs: () => ipcRenderer.invoke('get-model-configs'),
-  
+
   // Add event listener for MCP server status changes
   onMcpServerStatusChanged: (callback) => {
     const listener = (event, status) => callback(status);
@@ -69,7 +69,7 @@ contextBridge.exposeInMainWorld('electron', {
     // Return a function to remove the listener
     return () => ipcRenderer.removeListener('mcp-server-status-changed', listener);
   },
-  
+
   // MCP Log Handling
   getMcpServerLogs: (serverId) => ipcRenderer.invoke('get-mcp-server-logs', serverId),
   onMcpLogUpdate: (callback) => {
@@ -101,8 +101,9 @@ contextBridge.exposeInMainWorld('electron', {
   getCapturedContext: () => ipcRenderer.invoke('get-captured-context'),
   clearCapturedContext: () => ipcRenderer.invoke('clear-captured-context'),
   triggerContextCapture: () => ipcRenderer.invoke('trigger-context-capture'),
-  captureManualContext: (text, title, source) => ipcRenderer.invoke('capture-manual-context', text, title, source),
-  
+  captureManualContext: (text, title, source) =>
+    ipcRenderer.invoke('capture-manual-context', text, title, source),
+
   // Event listener for context captured via global hotkey
   onContextCaptured: (callback) => {
     const listener = (event, context) => callback(context);
@@ -114,7 +115,7 @@ contextBridge.exposeInMainWorld('electron', {
   // --- Popup Window Functions ---
   closePopup: () => ipcRenderer.invoke('close-popup'),
   isPopupOpen: () => ipcRenderer.invoke('is-popup-open'),
-  
+
   // Event listener for popup context (sent when popup opens with context)
   onPopupContext: (callback) => {
     const listener = (event, context) => callback(context);
@@ -125,7 +126,7 @@ contextBridge.exposeInMainWorld('electron', {
 
   // Other?
   sendToMain: (channel, data) => ipcRenderer.send(channel, data),
-  
+
   // Custom context menu
   showContextMenu: (params) => ipcRenderer.send('show-context-menu', params),
   onContextMenuCommand: (callback) => {
@@ -135,7 +136,8 @@ contextBridge.exposeInMainWorld('electron', {
   },
 
   // Popup window management
-  resizePopup: (width, height, resizable) => ipcRenderer.invoke('resize-popup', { width, height, resizable }),
+  resizePopup: (width, height, resizable) =>
+    ipcRenderer.invoke('resize-popup', { width, height, resizable }),
 
   // Tool-related IPC
   onToolCall: (callback) => {
@@ -143,10 +145,11 @@ contextBridge.exposeInMainWorld('electron', {
   },
 
   // Autocomplete
-  getAutocompleteSuggestion: (options) => ipcRenderer.invoke('autocomplete:get-suggestion', options),
+  getAutocompleteSuggestion: (options) =>
+    ipcRenderer.invoke('autocomplete:get-suggestion', options),
 
   // Generic IPC renderer access (kept for backward compatibility)
   ipcRenderer: {
     invoke: (channel, data) => ipcRenderer.invoke(channel, data),
   },
-}); 
+});

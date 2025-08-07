@@ -27,36 +27,40 @@ function MessageList({ messages = [], onToolCallExecute, onRemoveLastMessage }) 
   if (messages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500">
-        <p className="text-center max-w-md">
-          Send a message to start a conversation with Groq
-        </p>
+        <p className="text-center max-w-md">Send a message to start a conversation with Groq</p>
       </div>
     );
   }
 
   // We still filter tool messages here because the `Message` component handles displaying
   // assistant messages and their corresponding tool calls/results.
-  const displayMessages = messages.filter(message => message.role !== 'tool');
+  const displayMessages = messages.filter((message) => message.role !== 'tool');
 
   return (
     <div className="space-y-2 pt-4 p-4">
       {displayMessages.map((message, index) => (
-        <Message 
-          key={index} 
-          message={message} 
+        <Message
+          key={index}
+          message={message}
           onToolCallExecute={onToolCallExecute}
           allMessages={messages} // Pass all messages for the Message component to find tool results
           isLastMessage={index === displayMessages.length - 1}
         >
           {message.role === 'user' ? (
             <div className="flex items-start gap-2">
-              <div className="flex-1 flex flex-col gap-2"> {/* Use flex-col for text/images */}
+              <div className="flex-1 flex flex-col gap-2">
+                {' '}
+                {/* Use flex-col for text/images */}
                 {/* Check if content is an array (structured) or string (simple text) */}
                 {Array.isArray(message.content) ? (
                   message.content.map((part, partIndex) => {
                     if (part.type === 'text') {
                       // Render text part as plain text
-                      return <div key={`text-${partIndex}`} className="whitespace-pre-wrap">{part.text || ''}</div>;
+                      return (
+                        <div key={`text-${partIndex}`} className="whitespace-pre-wrap">
+                          {part.text || ''}
+                        </div>
+                      );
                     } else if (part.type === 'image_url' && part.image_url?.url) {
                       // Render image preview
                       return (
@@ -85,13 +89,13 @@ function MessageList({ messages = [], onToolCallExecute, onRemoveLastMessage }) 
 
       {/* Fullscreen Image Overlay */}
       {fullScreenImage && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 cursor-pointer"
           onClick={() => setFullScreenImage(null)} // Dismiss on click outside image
         >
-          <img 
-            src={fullScreenImage} 
-            alt="Fullscreen view" 
+          <img
+            src={fullScreenImage}
+            alt="Fullscreen view"
             className="max-w-full max-h-full object-contain"
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
           />
@@ -101,4 +105,4 @@ function MessageList({ messages = [], onToolCallExecute, onRemoveLastMessage }) 
   );
 }
 
-export default MessageList; 
+export default MessageList;

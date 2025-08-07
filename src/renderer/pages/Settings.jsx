@@ -1,6 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Plus, Trash2, Edit3, Save, X, RefreshCw, Key, Settings as SettingsIcon, Zap, Cpu, Server, AlertCircle, CheckCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Plus,
+  Trash2,
+  Edit3,
+  Save,
+  X,
+  RefreshCw,
+  Key,
+  Settings as SettingsIcon,
+  Zap,
+  Cpu,
+  Server,
+  AlertCircle,
+  CheckCircle,
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -26,8 +43,8 @@ function Settings() {
     theme: 'light',
     builtInTools: {
       codeInterpreter: false,
-      browserSearch: false
-    }
+      browserSearch: false,
+    },
   });
   const [saveStatus, setSaveStatus] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -38,7 +55,7 @@ function Settings() {
     command: '',
     args: '',
     env: {},
-    url: ''
+    url: '',
   });
   const [useJsonInput, setUseJsonInput] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
@@ -51,10 +68,10 @@ function Settings() {
     displayName: '',
     context: 8192,
     vision_supported: false,
-    builtin_tools_supported: false
+    builtin_tools_supported: false,
   });
   const [editingModelId, setEditingModelId] = useState(null);
-  
+
   const statusTimeoutRef = useRef(null);
   const saveTimeoutRef = useRef(null);
 
@@ -63,38 +80,38 @@ function Settings() {
       try {
         const settingsData = await window.electron.getSettings();
         if (!settingsData.disabledMcpServers) {
-            settingsData.disabledMcpServers = [];
+          settingsData.disabledMcpServers = [];
         }
         if (!settingsData.builtInTools) {
-            settingsData.builtInTools = {
-                codeInterpreter: false,
-                browserSearch: false
-            };
+          settingsData.builtInTools = {
+            codeInterpreter: false,
+            browserSearch: false,
+          };
         }
         if (!settingsData.theme) {
-            settingsData.theme = 'light';
+          settingsData.theme = 'light';
         }
         setSettings(settingsData);
       } catch (error) {
         console.error('Error loading settings:', error);
-        setSettings(prev => ({
-            ...prev,
-            GROQ_API_KEY: '',
-            temperature: 0.7,
-            top_p: 0.95,
-            mcpServers: {},
-            disabledMcpServers: [],
-            customSystemPrompt: '',
-            popupEnabled: true,
-            customCompletionUrl: '',
-            toolOutputLimit: 8000,
-            customApiBaseUrl: '',
-            customModels: {},
-            theme: 'light',
-            builtInTools: {
-                codeInterpreter: false,
-                browserSearch: false
-            }
+        setSettings((prev) => ({
+          ...prev,
+          GROQ_API_KEY: '',
+          temperature: 0.7,
+          top_p: 0.95,
+          mcpServers: {},
+          disabledMcpServers: [],
+          customSystemPrompt: '',
+          popupEnabled: true,
+          customCompletionUrl: '',
+          toolOutputLimit: 8000,
+          customApiBaseUrl: '',
+          customModels: {},
+          theme: 'light',
+          builtInTools: {
+            codeInterpreter: false,
+            browserSearch: false,
+          },
         }));
       }
     };
@@ -124,17 +141,17 @@ function Settings() {
     }
 
     setIsSaving(true);
-    
+
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         const settingsToSave = {
-            ...updatedSettings,
-            disabledMcpServers: updatedSettings.disabledMcpServers || []
+          ...updatedSettings,
+          disabledMcpServers: updatedSettings.disabledMcpServers || [],
         };
         const result = await window.electron.saveSettings(settingsToSave);
         if (result.success) {
           setSaveStatus({ type: 'success', message: 'Settings saved' });
-          
+
           if (statusTimeoutRef.current) {
             clearTimeout(statusTimeoutRef.current);
           }
@@ -164,7 +181,7 @@ function Settings() {
     const updatedSettings = { ...settings, [name]: value };
     setSettings(updatedSettings);
     saveSettings(updatedSettings);
-    
+
     // Immediately apply theme change if it's a theme toggle
     if (name === 'theme' && window.updateTheme) {
       window.updateTheme(value);
@@ -176,8 +193,8 @@ function Settings() {
       ...settings,
       builtInTools: {
         ...settings.builtInTools,
-        [toolName]: checked
-      }
+        [toolName]: checked,
+      },
     };
     setSettings(updatedSettings);
     saveSettings(updatedSettings);
@@ -192,18 +209,18 @@ function Settings() {
 
   const handleNewMcpServerChange = (e) => {
     const { name, value } = e.target;
-    setNewMcpServer(prev => ({ ...prev, [name]: value }));
+    setNewMcpServer((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleTransportChange = (e) => {
     const transportType = e.target.value;
-    setNewMcpServer(prev => ({
-        ...prev,
-        transport: transportType,
-        command: transportType === 'sse' ? '' : prev.command,
-        args: transportType === 'sse' ? '' : prev.args,
-        env: transportType === 'sse' ? {} : prev.env,
-        url: transportType === 'stdio' ? '' : prev.url
+    setNewMcpServer((prev) => ({
+      ...prev,
+      transport: transportType,
+      command: transportType === 'sse' ? '' : prev.command,
+      args: transportType === 'sse' ? '' : prev.args,
+      env: transportType === 'sse' ? {} : prev.env,
+      url: transportType === 'stdio' ? '' : prev.url,
     }));
     setJsonInput('');
     setJsonError(null);
@@ -211,22 +228,22 @@ function Settings() {
 
   const addEnvVar = () => {
     if (!newEnvVar.key) return;
-    
+
     console.log('Adding environment variable:', newEnvVar.key, '=', newEnvVar.value);
-    
-    setNewMcpServer(prev => ({
+
+    setNewMcpServer((prev) => ({
       ...prev,
       env: {
         ...prev.env,
-        [newEnvVar.key]: newEnvVar.value
-      }
+        [newEnvVar.key]: newEnvVar.value,
+      },
     }));
-    
+
     setNewEnvVar({ key: '', value: '' });
   };
 
   const removeEnvVar = (key) => {
-    setNewMcpServer(prev => {
+    setNewMcpServer((prev) => {
       const updatedEnv = { ...prev.env };
       delete updatedEnv[key];
       return { ...prev, env: updatedEnv };
@@ -237,7 +254,7 @@ function Settings() {
 
   const handleEnvVarChange = (e) => {
     const { name, value } = e.target;
-    setNewEnvVar(prev => ({ ...prev, [name]: value }));
+    setNewEnvVar((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleJsonInputChange = (e) => {
@@ -248,64 +265,68 @@ function Settings() {
   const parseJsonInput = () => {
     try {
       if (!jsonInput.trim()) {
-        throw new Error("JSON input is empty");
+        throw new Error('JSON input is empty');
       }
-      
+
       const parsedJson = JSON.parse(jsonInput);
-      
+
       // Check if it's a valid MCP server config
       if (typeof parsedJson !== 'object') {
-        throw new Error("JSON must be an object");
+        throw new Error('JSON must be an object');
       }
-      
+
       // Create a normalized server entry
       const serverEntry = {};
-      
+
       // Check for transport type in JSON (optional, default to stdio if missing)
       const transport = parsedJson.transport === 'sse' ? 'sse' : 'stdio';
       serverEntry.transport = transport;
 
       if (transport === 'stdio') {
-          if ('command' in parsedJson) {
-              serverEntry.command = parsedJson.command;
-          } else {
-              throw new Error("Stdio server config must include 'command' field");
-          }
+        if ('command' in parsedJson) {
+          serverEntry.command = parsedJson.command;
+        } else {
+          throw new Error("Stdio server config must include 'command' field");
+        }
 
-          // Handle args field for stdio
-          if ('args' in parsedJson) {
-              if (Array.isArray(parsedJson.args)) {
-              serverEntry.args = parsedJson.args;
-              } else {
-              throw new Error("'args' must be an array for stdio config");
-              }
+        // Handle args field for stdio
+        if ('args' in parsedJson) {
+          if (Array.isArray(parsedJson.args)) {
+            serverEntry.args = parsedJson.args;
           } else {
-              serverEntry.args = [];
+            throw new Error("'args' must be an array for stdio config");
           }
-
-          // Handle env field for stdio
-          if ('env' in parsedJson) {
-              if (typeof parsedJson.env === 'object' && parsedJson.env !== null) {
-              serverEntry.env = parsedJson.env;
-              } else {
-              throw new Error("'env' must be an object for stdio config");
-              }
-          } else {
-              serverEntry.env = {};
-          }
-          // Ensure url field is not present or empty for stdio
-          serverEntry.url = '';
-
-      } else { // transport === 'sse'
-          if ('url' in parsedJson && typeof parsedJson.url === 'string' && parsedJson.url.trim() !== '') {
-              serverEntry.url = parsedJson.url;
-          } else {
-              throw new Error("SSE server config must include a non-empty 'url' field");
-          }
-           // Ensure stdio fields are not present or empty for sse
-          serverEntry.command = '';
+        } else {
           serverEntry.args = [];
+        }
+
+        // Handle env field for stdio
+        if ('env' in parsedJson) {
+          if (typeof parsedJson.env === 'object' && parsedJson.env !== null) {
+            serverEntry.env = parsedJson.env;
+          } else {
+            throw new Error("'env' must be an object for stdio config");
+          }
+        } else {
           serverEntry.env = {};
+        }
+        // Ensure url field is not present or empty for stdio
+        serverEntry.url = '';
+      } else {
+        // transport === 'sse'
+        if (
+          'url' in parsedJson &&
+          typeof parsedJson.url === 'string' &&
+          parsedJson.url.trim() !== ''
+        ) {
+          serverEntry.url = parsedJson.url;
+        } else {
+          throw new Error("SSE server config must include a non-empty 'url' field");
+        }
+        // Ensure stdio fields are not present or empty for sse
+        serverEntry.command = '';
+        serverEntry.args = [];
+        serverEntry.env = {};
       }
 
       return serverEntry;
@@ -360,20 +381,21 @@ function Settings() {
     try {
       const parsedJson = JSON.parse(jsonInput || '{}');
       if (typeof parsedJson !== 'object' || parsedJson === null) {
-        throw new Error("JSON must be an object.");
+        throw new Error('JSON must be an object.');
       }
-      
+
       // Basic validation (can be more robust)
       const command = parsedJson.command || '';
       const args = Array.isArray(parsedJson.args) ? parsedJson.args : [];
-      const env = typeof parsedJson.env === 'object' && parsedJson.env !== null ? parsedJson.env : {};
+      const env =
+        typeof parsedJson.env === 'object' && parsedJson.env !== null ? parsedJson.env : {};
       const argsString = args.join(' ');
 
-      setNewMcpServer(prev => ({ ...prev, command, args: argsString, env }));
+      setNewMcpServer((prev) => ({ ...prev, command, args: argsString, env }));
       setJsonError(null);
       setUseJsonInput(false);
     } catch (error) {
-      console.error("Error parsing JSON to switch to form view:", error);
+      console.error('Error parsing JSON to switch to form view:', error);
       setJsonError(`Invalid JSON: ${error.message}. Cannot switch to form view.`);
       // Optionally keep the user in JSON view if parsing fails
     }
@@ -386,22 +408,23 @@ function Settings() {
     try {
       let serverConfig = {};
       if (newMcpServer.transport === 'stdio') {
-          const argsArray = parseArgsString(newMcpServer.args);
-          serverConfig = {
-              transport: 'stdio',
-              command: newMcpServer.command,
-              args: argsArray,
-              env: newMcpServer.env
-          };
-      } else { // sse or streamableHttp
-          serverConfig = {
-              transport: newMcpServer.transport, // Keep the selected transport
-              url: newMcpServer.url
-          };
-          // Explicitly exclude stdio fields if they somehow exist
-          delete serverConfig.command;
-          delete serverConfig.args;
-          delete serverConfig.env;
+        const argsArray = parseArgsString(newMcpServer.args);
+        serverConfig = {
+          transport: 'stdio',
+          command: newMcpServer.command,
+          args: argsArray,
+          env: newMcpServer.env,
+        };
+      } else {
+        // sse or streamableHttp
+        serverConfig = {
+          transport: newMcpServer.transport, // Keep the selected transport
+          url: newMcpServer.url,
+        };
+        // Explicitly exclude stdio fields if they somehow exist
+        delete serverConfig.command;
+        delete serverConfig.args;
+        delete serverConfig.env;
       }
 
       const jsonString = JSON.stringify(serverConfig, null, 2);
@@ -409,7 +432,7 @@ function Settings() {
       setJsonError(null); // Clear any previous JSON error
       setUseJsonInput(true);
     } catch (error) {
-      console.error("Error converting form state to JSON:", error);
+      console.error('Error converting form state to JSON:', error);
       // This should ideally not happen if form state is valid
       setJsonError(`Internal error: Failed to generate JSON. ${error.message}`);
     }
@@ -417,73 +440,77 @@ function Settings() {
 
   const handleSaveMcpServer = (e) => {
     e.preventDefault();
-    
+
     let serverConfig;
-    
+
     if (useJsonInput) {
       const parsedConfig = parseJsonInput();
       if (!parsedConfig) return;
-      
+
       // Use the ID from the form field (which is disabled during edit)
       if (!newMcpServer.id.trim()) {
-        setJsonError("Server ID is required");
+        setJsonError('Server ID is required');
         return;
       }
-      
+
       serverConfig = parsedConfig;
     } else {
       // Use form state
       if (!newMcpServer.id) {
-          setSaveStatus({ type: 'error', message: 'Server ID is required' });
-          return;
+        setSaveStatus({ type: 'error', message: 'Server ID is required' });
+        return;
       }
 
       if (newMcpServer.transport === 'stdio') {
-          if (!newMcpServer.command) {
-              setSaveStatus({ type: 'error', message: 'Command is required for stdio transport' });
-              return;
-          }
-          // Parse args string from the form field
-          const args = parseArgsString(newMcpServer.args);
-          serverConfig = {
-              transport: 'stdio',
-              command: newMcpServer.command,
-              args, // Use the parsed array
-              env: newMcpServer.env
-          };
-      } else { // sse or streamableHttp
-          if (!newMcpServer.url || !newMcpServer.url.trim()) {
-              setSaveStatus({ type: 'error', message: 'URL is required for SSE or Streamable HTTP transport' });
-              return;
-          }
-          try {
-              // Basic URL validation
-              new URL(newMcpServer.url);
-          } catch (urlError) {
-              setSaveStatus({ type: 'error', message: `Invalid URL: ${urlError.message}` });
-              return;
-          }
-          serverConfig = {
-              transport: newMcpServer.transport,
-              url: newMcpServer.url
-          };
+        if (!newMcpServer.command) {
+          setSaveStatus({ type: 'error', message: 'Command is required for stdio transport' });
+          return;
+        }
+        // Parse args string from the form field
+        const args = parseArgsString(newMcpServer.args);
+        serverConfig = {
+          transport: 'stdio',
+          command: newMcpServer.command,
+          args, // Use the parsed array
+          env: newMcpServer.env,
+        };
+      } else {
+        // sse or streamableHttp
+        if (!newMcpServer.url || !newMcpServer.url.trim()) {
+          setSaveStatus({
+            type: 'error',
+            message: 'URL is required for SSE or Streamable HTTP transport',
+          });
+          return;
+        }
+        try {
+          // Basic URL validation
+          new URL(newMcpServer.url);
+        } catch (urlError) {
+          setSaveStatus({ type: 'error', message: `Invalid URL: ${urlError.message}` });
+          return;
+        }
+        serverConfig = {
+          transport: newMcpServer.transport,
+          url: newMcpServer.url,
+        };
       }
     }
 
     console.log('Saving MCP server:', newMcpServer.id, 'with config:', serverConfig);
-    
+
     // Update settings with new/updated MCP server
     const updatedSettings = {
       ...settings,
       mcpServers: {
         ...settings.mcpServers,
-        [newMcpServer.id]: serverConfig // Use ID from state (disabled during edit)
-      }
+        [newMcpServer.id]: serverConfig, // Use ID from state (disabled during edit)
+      },
     };
 
     setSettings(updatedSettings);
     saveSettings(updatedSettings);
-    
+
     // Clear the form, reset to stdio default
     setNewMcpServer({ id: '', transport: 'stdio', command: '', args: '', env: {}, url: '' });
     setJsonInput('');
@@ -494,12 +521,12 @@ function Settings() {
   const removeMcpServer = (serverId) => {
     const updatedMcpServers = { ...settings.mcpServers };
     delete updatedMcpServers[serverId];
-    
+
     const updatedSettings = {
       ...settings,
-      mcpServers: updatedMcpServers
+      mcpServers: updatedMcpServers,
     };
-    
+
     setSettings(updatedSettings);
     saveSettings(updatedSettings);
 
@@ -519,27 +546,32 @@ function Settings() {
     // Determine transport type accurately
     let transport;
     if (serverToEdit.transport === 'sse') {
-        transport = 'sse';
+      transport = 'sse';
     } else if (serverToEdit.transport === 'streamableHttp') {
-        transport = 'streamableHttp';
+      transport = 'streamableHttp';
     } else {
-        transport = 'stdio'; // Default to stdio if missing or other value
+      transport = 'stdio'; // Default to stdio if missing or other value
     }
 
-
     // Populate form fields based on transport type
-    let command = '', argsArray = [], envObject = {}, argsString = '', url = '';
+    let command = '',
+      argsArray = [],
+      envObject = {},
+      argsString = '',
+      url = '';
     if (transport === 'stdio') {
-        command = serverToEdit.command || '';
-        argsArray = Array.isArray(serverToEdit.args) ? serverToEdit.args : [];
-        envObject = typeof serverToEdit.env === 'object' && serverToEdit.env !== null ? serverToEdit.env : {};
-        argsString = argsArray.join(' ');
-    } else { // sse or streamableHttp
-        url = serverToEdit.url || '';
-        // Ensure stdio fields are clear
-        command = '';
-        argsString = '';
-        envObject = {};
+      command = serverToEdit.command || '';
+      argsArray = Array.isArray(serverToEdit.args) ? serverToEdit.args : [];
+      envObject =
+        typeof serverToEdit.env === 'object' && serverToEdit.env !== null ? serverToEdit.env : {};
+      argsString = argsArray.join(' ');
+    } else {
+      // sse or streamableHttp
+      url = serverToEdit.url || '';
+      // Ensure stdio fields are clear
+      command = '';
+      argsString = '';
+      envObject = {};
     }
 
     setNewMcpServer({
@@ -548,22 +580,23 @@ function Settings() {
       command: command,
       args: argsString,
       env: envObject,
-      url: url // URL will be populated correctly now
+      url: url, // URL will be populated correctly now
     });
 
     // Also populate the JSON input field based on the correct structure
     try {
       let jsonConfig;
       if (transport === 'stdio') {
-          jsonConfig = { transport: 'stdio', command, args: argsArray, env: envObject };
-      } else { // sse or streamableHttp
-          // Use the determined transport type for the JSON representation
-          jsonConfig = { transport: transport, url };
+        jsonConfig = { transport: 'stdio', command, args: argsArray, env: envObject };
+      } else {
+        // sse or streamableHttp
+        // Use the determined transport type for the JSON representation
+        jsonConfig = { transport: transport, url };
       }
       const jsonString = JSON.stringify(jsonConfig, null, 2);
       setJsonInput(jsonString);
     } catch (error) {
-      console.error("Failed to stringify server config for JSON input:", error);
+      console.error('Failed to stringify server config for JSON input:', error);
       setJsonInput(''); // Clear if error
     }
 
@@ -586,15 +619,15 @@ function Settings() {
   // Custom Model Management Functions
   const handleNewCustomModelChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setNewCustomModel(prev => ({
+    setNewCustomModel((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (name === 'context' ? parseInt(value) || 8192 : value)
+      [name]: type === 'checkbox' ? checked : name === 'context' ? parseInt(value) || 8192 : value,
     }));
   };
 
   const handleSaveCustomModel = (e) => {
     e.preventDefault();
-    
+
     if (!newCustomModel.id.trim()) {
       setSaveStatus({ type: 'error', message: 'Model ID is required' });
       return;
@@ -610,37 +643,43 @@ function Settings() {
       displayName: newCustomModel.displayName.trim(),
       context: newCustomModel.context,
       vision_supported: newCustomModel.vision_supported,
-      builtin_tools_supported: newCustomModel.builtin_tools_supported
+      builtin_tools_supported: newCustomModel.builtin_tools_supported,
     };
 
     console.log('Saving custom model:', newCustomModel.id, 'with config:', modelConfig);
-    
+
     // Update settings with new/updated custom model
     const updatedSettings = {
       ...settings,
       customModels: {
         ...settings.customModels,
-        [newCustomModel.id]: modelConfig
-      }
+        [newCustomModel.id]: modelConfig,
+      },
     };
 
     setSettings(updatedSettings);
     saveSettings(updatedSettings);
-    
+
     // Clear the form
-    setNewCustomModel({ id: '', displayName: '', context: 8192, vision_supported: false, builtin_tools_supported: false });
+    setNewCustomModel({
+      id: '',
+      displayName: '',
+      context: 8192,
+      vision_supported: false,
+      builtin_tools_supported: false,
+    });
     setEditingModelId(null);
   };
 
   const removeCustomModel = (modelId) => {
     const updatedCustomModels = { ...settings.customModels };
     delete updatedCustomModels[modelId];
-    
+
     const updatedSettings = {
       ...settings,
-      customModels: updatedCustomModels
+      customModels: updatedCustomModels,
     };
-    
+
     setSettings(updatedSettings);
     saveSettings(updatedSettings);
 
@@ -660,13 +699,19 @@ function Settings() {
       displayName: modelToEdit.displayName || '',
       context: modelToEdit.context || 8192,
       vision_supported: modelToEdit.vision_supported || false,
-      builtin_tools_supported: modelToEdit.builtin_tools_supported || false
+      builtin_tools_supported: modelToEdit.builtin_tools_supported || false,
     });
   };
 
   const cancelModelEditing = () => {
     setEditingModelId(null);
-    setNewCustomModel({ id: '', displayName: '', context: 8192, vision_supported: false, builtin_tools_supported: false });
+    setNewCustomModel({
+      id: '',
+      displayName: '',
+      context: 8192,
+      vision_supported: false,
+      builtin_tools_supported: false,
+    });
   };
 
   const getStatusMessage = () => {
@@ -681,7 +726,7 @@ function Settings() {
     try {
       const settingsData = await window.electron.getSettings();
       if (!settingsData.disabledMcpServers) {
-          settingsData.disabledMcpServers = [];
+        settingsData.disabledMcpServers = [];
       }
       setSettings(settingsData);
       setSaveStatus({ type: 'success', message: 'Settings reloaded from disk' });
@@ -713,7 +758,7 @@ function Settings() {
         }
       }
 
-      keysToRemove.forEach(key => {
+      keysToRemove.forEach((key) => {
         localStorage.removeItem(key);
         console.log(`Removed tool approval key: ${key}`);
       });
@@ -768,13 +813,15 @@ function Settings() {
       {(isSaving || saveStatus) && (
         <div className="border-b bg-background">
           <div className="container px-6 py-3">
-            <div className={`flex items-center space-x-2 text-sm ${
-              saveStatus?.type === 'error'
-                ? 'text-destructive'
-                : saveStatus?.type === 'success'
-                ? 'text-green-600'
-                : 'text-muted-foreground'
-            }`}>
+            <div
+              className={`flex items-center space-x-2 text-sm ${
+                saveStatus?.type === 'error'
+                  ? 'text-destructive'
+                  : saveStatus?.type === 'success'
+                    ? 'text-green-600'
+                    : 'text-muted-foreground'
+              }`}
+            >
               {saveStatus?.type === 'success' ? (
                 <CheckCircle className="h-4 w-4" />
               ) : saveStatus?.type === 'error' ? (
@@ -792,14 +839,16 @@ function Settings() {
       <main>
         <div className="container px-6 py-8">
           <div className="max-w-4xl mx-auto space-y-8">
-            
             {/* Settings Path Info */}
             {settingsPath && (
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <Key className="h-4 w-4" />
-                    <span>Settings file: <code className="text-xs bg-muted px-1 py-0.5 rounded">{settingsPath}</code></span>
+                    <span>
+                      Settings file:{' '}
+                      <code className="text-xs bg-muted px-1 py-0.5 rounded">{settingsPath}</code>
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -821,7 +870,7 @@ function Settings() {
                   <Label htmlFor="api-key">API Key</Label>
                   <div className="relative">
                     <Input
-                      type={showApiKey ? "text" : "password"}
+                      type={showApiKey ? 'text' : 'password'}
                       id="api-key"
                       name="GROQ_API_KEY"
                       value={settings.GROQ_API_KEY || ''}
@@ -840,7 +889,7 @@ function Settings() {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="custom-api-base-url">Custom API Base URL (Optional)</Label>
                   <Input
@@ -852,8 +901,9 @@ function Settings() {
                     placeholder="e.g., https://api.openai.com/v1 or http://127.0.0.1:8000/api"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Override the default API endpoint. You can include '/openai/v1' in the URL or just the base path. 
-                    The system will automatically handle the correct endpoint construction. Leave empty to use the default Groq API.
+                    Override the default API endpoint. You can include '/openai/v1' in the URL or
+                    just the base path. The system will automatically handle the correct endpoint
+                    construction. Leave empty to use the default Groq API.
                   </p>
                 </div>
               </CardContent>
@@ -891,7 +941,7 @@ function Settings() {
                       Lower values make responses more deterministic, higher values more creative
                     </p>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <Label htmlFor="top_p">
                       Top P: <Badge variant="outline">{settings.top_p}</Badge>
@@ -920,7 +970,8 @@ function Settings() {
               <CardHeader>
                 <CardTitle>Popup Window</CardTitle>
                 <CardDescription>
-                  Enable or disable the global hotkey (Cmd+G or Ctrl+G) to open the popup window for quick context capture.
+                  Enable or disable the global hotkey (Cmd+G or Ctrl+G) to open the popup window for
+                  quick context capture.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -942,7 +993,8 @@ function Settings() {
               <CardHeader>
                 <CardTitle>Dark Mode</CardTitle>
                 <CardDescription>
-                  Switch between light and dark themes. Your preference will persist across restarts.
+                  Switch between light and dark themes. Your preference will persist across
+                  restarts.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -953,7 +1005,9 @@ function Settings() {
                   <Switch
                     id="dark-mode"
                     checked={settings.theme === 'dark'}
-                    onChange={(e) => handleToggleChange('theme', e.target.checked ? 'dark' : 'light')}
+                    onChange={(e) =>
+                      handleToggleChange('theme', e.target.checked ? 'dark' : 'light')
+                    }
                   />
                 </div>
               </CardContent>
@@ -964,7 +1018,8 @@ function Settings() {
               <CardHeader>
                 <CardTitle>Spell Check</CardTitle>
                 <CardDescription>
-                  Enable native spell-checking with red underlines for typos in the chat input. Uses your browser's built-in spell checker.
+                  Enable native spell-checking with red underlines for typos in the chat input. Uses
+                  your browser's built-in spell checker.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1010,7 +1065,7 @@ function Settings() {
                       onChange={(e) => handleBuiltInToolToggle('codeInterpreter', e.target.checked)}
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <Label htmlFor="browser-search" className="font-medium">
@@ -1081,22 +1136,27 @@ function Settings() {
                                     {config.transport === 'sse' ? 'SSE' : 'Stdio'}
                                   </Badge>
                                 </div>
-                                
+
                                 <div className="text-sm text-muted-foreground font-mono">
                                   {config.transport === 'sse' ? (
                                     <span>URL: {config.url}</span>
                                   ) : (
-                                    <span>$ {config.command} {(config.args || []).join(' ')}</span>
+                                    <span>
+                                      $ {config.command} {(config.args || []).join(' ')}
+                                    </span>
                                   )}
                                 </div>
-                                
+
                                 {config.env && Object.keys(config.env).length > 0 && (
                                   <div className="text-xs text-muted-foreground">
-                                    <span>Environment variables: {Object.keys(config.env).length} configured</span>
+                                    <span>
+                                      Environment variables: {Object.keys(config.env).length}{' '}
+                                      configured
+                                    </span>
                                   </div>
                                 )}
                               </div>
-                              
+
                               <div className="flex space-x-2 ml-4">
                                 <Button
                                   variant="outline"
@@ -1133,7 +1193,7 @@ function Settings() {
                     <Plus className="h-4 w-4" />
                     <span>Add New MCP Server</span>
                   </h4>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="server-id">Server ID</Label>
@@ -1145,7 +1205,7 @@ function Settings() {
                         placeholder="e.g., filesystem, postgres"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="transport">Transport Type</Label>
                       <Select
@@ -1173,7 +1233,7 @@ function Settings() {
                           placeholder="e.g., node, python, /path/to/executable"
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="args">Arguments</Label>
                         <Input
@@ -1208,16 +1268,18 @@ function Settings() {
                             <div key={key} className="flex items-center space-x-2">
                               <div className="flex-1 grid grid-cols-2 gap-2">
                                 <Input value={key} disabled className="bg-muted" />
-                                <Input 
+                                <Input
                                   value={
-                                    key.toLowerCase().includes('key') || 
-                                    key.toLowerCase().includes('token') || 
+                                    key.toLowerCase().includes('key') ||
+                                    key.toLowerCase().includes('token') ||
                                     key.toLowerCase().includes('secret')
                                       ? '*'.repeat(key.length)
-                                      : (typeof value === 'string' && value.length > 30 ? `${value.substring(0, 27)}...` : value)
-                                  } 
-                                  disabled 
-                                  className="bg-muted" 
+                                      : typeof value === 'string' && value.length > 30
+                                        ? `${value.substring(0, 27)}...`
+                                        : value
+                                  }
+                                  disabled
+                                  className="bg-muted"
                                 />
                               </div>
                               <Button
@@ -1230,7 +1292,7 @@ function Settings() {
                               </Button>
                             </div>
                           ))}
-                          
+
                           <div className="flex items-center space-x-2">
                             <Input
                               name="key"
@@ -1266,7 +1328,11 @@ function Settings() {
                       variant="outline"
                       onClick={() => {
                         setNewMcpServer({
-                          id: '', transport: 'stdio', command: '', args: '', env: {}
+                          id: '',
+                          transport: 'stdio',
+                          command: '',
+                          args: '',
+                          env: {},
                         });
                         setJsonInput('');
                         setJsonError(null);
@@ -1277,7 +1343,10 @@ function Settings() {
                     </Button>
                     <Button
                       onClick={handleSaveMcpServer}
-                      disabled={!newMcpServer.id || (newMcpServer.transport === 'stdio' && !newMcpServer.command)}
+                      disabled={
+                        !newMcpServer.id ||
+                        (newMcpServer.transport === 'stdio' && !newMcpServer.command)
+                      }
                     >
                       <Save className="h-4 w-4 mr-2" />
                       Add Server
@@ -1308,7 +1377,8 @@ function Settings() {
                   Reset Tool Approvals
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2">
-                  This will remove all saved tool approval preferences and prompt you again for each tool
+                  This will remove all saved tool approval preferences and prompt you again for each
+                  tool
                 </p>
               </CardContent>
             </Card>
@@ -1341,22 +1411,28 @@ function Settings() {
                                     {config.context?.toLocaleString() || '8,192'} tokens
                                   </Badge>
                                   {config.vision_supported && (
-                                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs bg-blue-50 text-blue-700"
+                                    >
                                       Vision
                                     </Badge>
                                   )}
                                   {config.builtin_tools_supported && (
-                                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs bg-green-50 text-green-700"
+                                    >
                                       Built-in Tools
                                     </Badge>
                                   )}
                                 </div>
-                                
+
                                 <div className="text-sm text-muted-foreground font-mono">
                                   Model ID: {id}
                                 </div>
                               </div>
-                              
+
                               <div className="flex space-x-2 ml-4">
                                 <Button
                                   variant="outline"
@@ -1393,7 +1469,7 @@ function Settings() {
                     <Plus className="h-4 w-4" />
                     <span>{editingModelId ? 'Edit Custom Model' : 'Add New Custom Model'}</span>
                   </h4>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="model-id">Model ID</Label>
@@ -1409,7 +1485,7 @@ function Settings() {
                         Unique identifier for the model (cannot be changed after creation)
                       </p>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="model-display-name">Display Name</Label>
                       <Input
@@ -1442,7 +1518,7 @@ function Settings() {
                         Maximum number of tokens the model can process
                       </p>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="model-vision">Capabilities</Label>
                       <div className="space-y-3 pt-2">
@@ -1481,10 +1557,7 @@ function Settings() {
 
                   <div className="flex justify-end space-x-2">
                     {editingModelId && (
-                      <Button
-                        variant="outline"
-                        onClick={cancelModelEditing}
-                      >
+                      <Button variant="outline" onClick={cancelModelEditing}>
                         <X className="h-4 w-4 mr-2" />
                         Cancel
                       </Button>
@@ -1493,7 +1566,11 @@ function Settings() {
                       variant="outline"
                       onClick={() => {
                         setNewCustomModel({
-                          id: '', displayName: '', context: 8192, vision_supported: false, builtin_tools_supported: false
+                          id: '',
+                          displayName: '',
+                          context: 8192,
+                          vision_supported: false,
+                          builtin_tools_supported: false,
                         });
                         setEditingModelId(null);
                       }}
@@ -1519,4 +1596,4 @@ function Settings() {
   );
 }
 
-export default Settings; 
+export default Settings;
