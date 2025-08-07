@@ -196,6 +196,8 @@ app.whenReady().then(async () => {
     // Verify model definitions are available
     if (MODEL_CONTEXT_SIZES && Object.keys(MODEL_CONTEXT_SIZES).length > 0) {
       console.log('Successfully loaded shared model definitions.');
+    } else {
+      console.warn('Model definitions not available or empty.');
     }
   } catch (error) {
     console.error('Failed to load shared model definitions:', error);
