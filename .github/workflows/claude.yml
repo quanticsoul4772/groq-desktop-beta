@@ -167,11 +167,19 @@ jobs:
             Bash(pkill:*)
             Bash(lsof:*)
           
-          # Optional: Add custom instructions for Claude to customize its behavior for your project
-          # custom_instructions: |
-          #   Follow our coding standards
-          #   Ensure all new code has tests
-          #   Use TypeScript for new files
+          # Custom instructions for Claude to customize its behavior for this project
+          custom_instructions: |
+            This is a Groq Desktop application using Electron, React, and Vite.
+            - Use pnpm as the package manager (v10.9.0)
+            - Follow existing code patterns and project structure
+            - Always run tests before committing changes
+            - Use Prettier for formatting (config in .prettierrc.json)
+            - Use ESLint for linting JavaScript/JSX files
+            - Ensure JSON files are valid before committing
+            - Write tests for new features when applicable
+            - Update documentation when making significant changes
+            - Use conventional commit messages (feat:, fix:, chore:, docs:, test:)
+            - The project uses Node.js >=18.0.0
           
           # Optional: Custom environment variables for Claude
           # claude_env: |
