@@ -25,6 +25,7 @@
     "test:cache-perf": "./test-cache-performance.sh",
     "test:clear-cache": "rm -rf .jest-cache",
     "test:platforms": "./test-cross-platform.sh",
+<<<<<<< Updated upstream
     "test:paths": "node __tests__/utils/test-paths.js",
     "test:settings": "node __tests__/utils/test-settingsManager.js",
     "test:shared-dirs": "node __tests__/utils/test-shared-directories.js",
@@ -32,6 +33,14 @@
     "benchmark:jest": "node __tests__/benchmarks/benchmark-jest.js",
     "format": "prettier --write \"**/*.{js,jsx,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,json,md,css}\""
+=======
+    "test:paths": "node test-paths.js",
+    "lint": "npx eslint . --max-warnings 0",
+    "test:settings": "node test-settingsManager.js",
+    "test:shared-dirs": "node test-shared-directories.js",
+    "test:ci": "pnpm run lint && pnpm run test:platforms && pnpm run test:paths && pnpm run test:settings && pnpm run test:shared-dirs",
+    "test": "pnpm run test:ci"
+>>>>>>> Stashed changes
   },
   "keywords": [
     "electron",
