@@ -271,7 +271,6 @@ describe('API Resilience Integration Tests', () => {
 
     test('half-opens circuit after cooldown period', async () => {
       let circuitOpen = true;
-      let failureCount = 3;
       const cooldownPeriod = 100; // Short period for testing
       let lastFailureTime = Date.now() - cooldownPeriod - 10; // Past cooldown
 
@@ -284,7 +283,6 @@ describe('API Resilience Integration Tests', () => {
         // Check if circuit can be half-opened
         if (circuitOpen && now - lastFailureTime > cooldownPeriod) {
           circuitOpen = false;
-          failureCount = 0;
         }
 
         if (circuitOpen) {

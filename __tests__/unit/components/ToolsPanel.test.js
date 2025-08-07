@@ -1,9 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+/* eslint-disable-next-line no-unused-vars */
 import ToolsPanel from '../../../src/renderer/components/ToolsPanel';
 
-// Explicitly reference to satisfy ESLint
-ToolsPanel;
 
 describe('ToolsPanel', () => {
   const mockTools = [

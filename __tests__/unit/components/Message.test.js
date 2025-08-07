@@ -1,9 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+/* eslint-disable-next-line no-unused-vars */
 import Message from '../../../src/renderer/components/Message';
 
-// Explicitly reference to satisfy ESLint
-Message;
 
 // Mock MarkdownRenderer
 jest.mock('../../../src/renderer/components/MarkdownRenderer', () => {

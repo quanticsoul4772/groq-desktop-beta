@@ -1,8 +1,10 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
+/* eslint-disable-next-line no-unused-vars */
 import { ChatContext, ChatProvider } from '../../../src/renderer/context/ChatContext';
 
 // Mock component to test the context
+/* eslint-disable-next-line no-unused-vars */
 const TestComponent = () => {
   const context = React.useContext(ChatContext);
 
@@ -36,8 +38,6 @@ const TestComponent = () => {
   );
 };
 
-// Explicitly reference components to satisfy ESLint
-ChatProvider && TestComponent;
 
 describe('ChatContext', () => {
   test('provides context to children', () => {
@@ -186,6 +186,7 @@ describe('ChatContext', () => {
   });
 
   test('preserves message order', async () => {
+    /* eslint-disable-next-line no-unused-vars */
     const OrderTestComponent = () => {
       const { messages, addMessage } = React.useContext(ChatContext);
 
@@ -203,7 +204,6 @@ describe('ChatContext', () => {
         </div>
       );
     };
-    OrderTestComponent; // Explicit reference for ESLint
 
     render(
       <ChatProvider>
@@ -224,6 +224,7 @@ describe('ChatContext', () => {
   });
 
   test('handles complex message updates', async () => {
+    /* eslint-disable-next-line no-unused-vars */
     const ComplexTestComponent = () => {
       const { messages, addMessage, updateLastMessage } = React.useContext(ChatContext);
 
@@ -258,7 +259,6 @@ describe('ChatContext', () => {
         </div>
       );
     };
-    ComplexTestComponent; // Explicit reference for ESLint
 
     render(
       <ChatProvider>

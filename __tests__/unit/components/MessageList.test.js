@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
+/* eslint-disable-next-line no-unused-vars */
 import MessageList from '../../../src/renderer/components/MessageList';
 
-// Explicitly reference to satisfy ESLint
-MessageList;
 
 // Mock Message component
 jest.mock('../../../src/renderer/components/Message', () => {
