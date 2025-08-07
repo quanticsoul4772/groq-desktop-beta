@@ -1,7 +1,6 @@
 const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
-const { globalShortcut: _globalShortcut } = require('electron');
 
 // Create ~/Library/Logs/Groq Desktop if it does not exist
 app.setAppLogsPath();
@@ -194,8 +193,10 @@ app.whenReady().then(async () => {
 
   // Load model context sizes from the JS module
   try {
-    MODEL_CONTEXT_SIZES;
-    console.log('Successfully loaded shared model definitions.');
+    // Verify model definitions are available
+    if (MODEL_CONTEXT_SIZES && Object.keys(MODEL_CONTEXT_SIZES).length > 0) {
+      console.log('Successfully loaded shared model definitions.');
+    }
   } catch (error) {
     console.error('Failed to load shared model definitions:', error);
   } // --- Early IPC Handlers required by popup and renderer before other init --- //
