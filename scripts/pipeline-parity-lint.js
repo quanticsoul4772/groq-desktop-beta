@@ -6,8 +6,6 @@
  */
 
 const { execSync } = require('child_process');
-// File system operations (if needed later)
-// const fs = require('fs');
 const path = require('path');
 
 class LintChecker {

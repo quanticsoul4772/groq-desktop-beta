@@ -5,7 +5,7 @@ const pluginJsxRuntime = require('eslint-plugin-react/configs/jsx-runtime');
 const babelParser = require('@babel/eslint-parser');
 
 module.exports = [
-  // 1. Global ignores
+  // Global ignores
   {
     ignores: [
       "node_modules/",
@@ -17,7 +17,7 @@ module.exports = [
     ]
   },
 
-  // 2. JS/CJS specific config (Electron Main, Scripts, Configs etc.)
+  // JS/CJS specific config (Electron Main, Scripts, Configs etc.)
   {
     files: ["**/*.{js,cjs}"],
     languageOptions: {
@@ -35,13 +35,12 @@ module.exports = [
             'argsIgnorePattern': '^_',
             'varsIgnorePattern': '^_',
             'caughtErrors': 'none' // Ignore all caught errors regardless of name
-            // 'caughtErrorsIgnorePattern': '^_'
         }],
         'no-unreachable': 'warn'
     }
   },
 
-  // 3. Jest/Test files config
+  // Jest/Test files config
   {
     files: ["**/__tests__/**/*.{js,jsx}", "**/__mocks__/**/*.js", "**/*.test.{js,jsx}", "**/jest.*.js"],
     languageOptions: {
@@ -88,7 +87,7 @@ module.exports = [
     }
   },
 
-  // 4. JSX specific config (React Components in Renderer)
+  // JSX specific config (React Components in Renderer)
   {
     files: ["src/renderer/**/*.{jsx}"],
     plugins: {
@@ -125,7 +124,6 @@ module.exports = [
           'argsIgnorePattern': '^_',
           'varsIgnorePattern': '^_',
           'caughtErrors': 'none' // Ignore all caught errors regardless of name
-          // 'caughtErrorsIgnorePattern': '^_'
       }],
       'no-unreachable': 'warn'
     }
