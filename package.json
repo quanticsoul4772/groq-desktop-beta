@@ -37,6 +37,12 @@
     "test:pipeline:quick": "node scripts/pipeline-parity.js --quick",
     "test:pipeline:full": "node scripts/pipeline-parity.js --full",
     "test:pipeline:coverage": "node scripts/pipeline-parity.js --coverage-only",
+    "test:pipeline:verbose": "node scripts/pipeline-parity.js --verbose",
+    "test:progress": "node scripts/test-with-progress.js",
+    "test:progress:coverage": "node scripts/test-with-progress.js --coverage",
+    "test:progress:verbose": "node scripts/test-with-progress.js --verbose",
+    "build:progress": "node scripts/build-with-progress.js",
+    "build:progress:verbose": "node scripts/build-with-progress.js --verbose",
     "lint:pipeline": "node scripts/pipeline-parity-lint.js",
     "coverage:check": "node scripts/pipeline-parity-coverage.js",
     "prepare": "husky"

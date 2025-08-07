@@ -13,6 +13,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const ProgressTracker = require('./progress-tracker');
 
 class PipelineParity {
   constructor(options = {}) {
@@ -23,6 +24,7 @@ class PipelineParity {
       autoRunTests: true, // Automatically run tests when coverage is requested
       nodeVersions: ['20'], // Default to current, expandable later
       reportFormat: 'github',
+      verbose: false, // Show detailed progress output
       ...options,
     };
 
@@ -145,13 +147,13 @@ class PipelineParity {
 
   async runLinting() {
     const maxWarnings = this.config.eslintConfig?.maxWarnings ?? 0;
-    this.log(`Running ESLint with --max-warnings ${maxWarnings}...`, 'info');
-
+    
     try {
-      // Run ESLint with configured max-warnings value
-      execSync(`npx eslint . --max-warnings ${maxWarnings}`, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
+      // Run ESLint with progress tracking
+      await ProgressTracker.execWithProgress(`npx eslint . --max-warnings ${maxWarnings}`, {
+        name: 'ESLint Check',
+        verbose: this.options.verbose,
+        estimatedDuration: 10 // ESLint usually takes 5-15 seconds
       });
 
       this.results.linting.status = 'success';
@@ -169,10 +171,12 @@ class PipelineParity {
   }
 
   async runFormatCheck() {
-    this.log('Checking Prettier formatting...', 'info');
-
     try {
-      execSync('pnpm format:check', { encoding: 'utf8' });
+      await ProgressTracker.execWithProgress('pnpm format:check', {
+        name: 'Prettier Check',
+        verbose: this.options.verbose,
+        estimatedDuration: 5
+      });
       this.results.linting.details.push('✅ Prettier: All files formatted correctly');
       this.log('Prettier check passed', 'success');
     } catch (error) {
@@ -184,12 +188,11 @@ class PipelineParity {
   }
 
   async runImportValidation() {
-    this.log('Validating imports...', 'info');
-
     try {
-      execSync('node scripts/validate-test-imports.js', {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
+      await ProgressTracker.execWithProgress('node scripts/validate-test-imports.js', {
+        name: 'Import Validation',
+        verbose: this.options.verbose,
+        estimatedDuration: 3
       });
 
       this.results.imports.status = 'success';
@@ -204,13 +207,12 @@ class PipelineParity {
   }
 
   async runTests() {
-    this.log('Running Jest tests with CI flags...', 'info');
-
     try {
-      // Use the same command as CI
-      const result = execSync('pnpm test:ci', {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
+      // Use the same command as CI with progress tracking
+      const result = await ProgressTracker.execWithProgress('pnpm test:ci', {
+        name: 'Jest Test Suite',
+        verbose: this.options.verbose,
+        estimatedDuration: 25 // Tests usually take 15-35 seconds
       });
 
       // Parse test results from output
@@ -465,6 +467,10 @@ function parseArgs() {
       case '--node-versions':
         options.nodeVersions = args[++i].split(',');
         break;
+      case '--verbose':
+      case '-v':
+        options.verbose = true;
+        break;
       case '--help':
         console.log(`
 Pipeline Parity Tests - Simulate CI locally
@@ -476,12 +482,14 @@ Options:
   --full            Full mode (all checks, multi-platform)
   --coverage-only   Only run coverage validation
   --no-auto-tests   Disable automatic test execution for coverage
+  --verbose, -v     Show detailed progress output
   --node-versions   Comma-separated Node versions to test
   --help           Show this help
 
 Examples:
   pnpm test:pipeline
   pnpm test:pipeline --quick
+  pnpm test:pipeline --verbose
   pnpm test:pipeline --coverage-only
   pnpm test:pipeline --coverage-only --no-auto-tests
         `);
