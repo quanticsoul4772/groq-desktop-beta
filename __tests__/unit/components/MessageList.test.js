@@ -1,4 +1,3 @@
-import _React from 'react';
 import { render, screen } from '@testing-library/react';
 import MessageList from '../../../src/renderer/components/MessageList';
 
