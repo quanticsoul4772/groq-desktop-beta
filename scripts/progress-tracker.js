@@ -170,6 +170,7 @@ class ProgressTracker {
         // Clear any existing interval
         if (this.interval) {
           clearInterval(this.interval);
+          this.interval = null;
         }
         
         this.interval = setInterval(() => {
