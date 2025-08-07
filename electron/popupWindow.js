@@ -123,7 +123,7 @@ class PopupWindowManager {
     if (this.isOpen()) {
       const window = this.getPopupWindow();
       const wasResizable = window.isResizable();
-      const { workAreaSize: _workAreaSize } = screen.getPrimaryDisplay();
+      // Get primary display for window positioning calculations (workAreaSize not currently used)
       const bounds = window.getBounds();
 
       const newBounds = {
