@@ -17,9 +17,36 @@ module.exports = [
     ]
   },
 
-  // JS/CJS specific config (Electron Main, Scripts, Configs etc.)
+  // Scripts, benchmarks, and utility files - allow console.log
+  {
+    files: ["scripts/**/*.js", "__tests__/benchmarks/**/*.js", "__tests__/utils/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        process: 'readonly',
+        __dirname: 'readonly',
+        module: 'readonly',
+        require: 'readonly'
+      }
+    },
+    rules: {
+      ...pluginJs.configs.recommended.rules,
+      'no-unused-vars': ['warn', {
+          'argsIgnorePattern': '^_',
+          'varsIgnorePattern': '^_',
+          'caughtErrors': 'none',
+          'destructuredArrayIgnorePattern': '^_'
+      }],
+      'no-unreachable': 'warn',
+      'no-console': 'off', // Allow all console methods in scripts and utilities
+      'prefer-const': 'warn'
+    }
+  },
+
+  // JS/CJS specific config (Electron Main, etc.)
   {
     files: ["**/*.{js,cjs}"],
+    ignores: ["scripts/**/*.js", "__tests__/benchmarks/**/*.js", "__tests__/utils/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -34,9 +61,13 @@ module.exports = [
         'no-unused-vars': ['warn', {
             'argsIgnorePattern': '^_',
             'varsIgnorePattern': '^_',
-            'caughtErrors': 'none' // Ignore all caught errors regardless of name
+            'caughtErrors': 'none', // Ignore all caught errors regardless of name
+            'destructuredArrayIgnorePattern': '^_' // Allow unused destructured array elements
         }],
-        'no-unreachable': 'warn'
+        'no-unreachable': 'warn',
+        // Project-specific exceptions for Electron main process
+        'no-console': ['warn', { allow: ['log', 'info', 'warn', 'error'] }], // Allow console logging for Electron debugging
+        'prefer-const': 'warn' // Warn instead of error
     }
   },
 
@@ -78,18 +109,25 @@ module.exports = [
     },
     rules: {
       ...pluginJs.configs.recommended.rules,
+      // React 19 compatibility for test files with JSX
+      'react/jsx-uses-react': 'off',
+      'react/react-in-jsx-scope': 'off',
       'no-unused-vars': ['warn', {
           'argsIgnorePattern': '^_',
-          'varsIgnorePattern': '^_',
-          'caughtErrors': 'none'
+          'varsIgnorePattern': '^_|^React$', // Allow unused React import for compatibility
+          'caughtErrors': 'none',
+          'destructuredArrayIgnorePattern': '^_' // Allow unused destructured array elements
       }],
-      'no-unreachable': 'warn'
+      'no-unreachable': 'warn',
+      // Project-specific exceptions for test files
+      'no-console': ['warn', { allow: ['log', 'warn', 'error'] }], // Allow console.log, warn, and error in tests
+      'prefer-const': 'warn' // Warn instead of error
     }
   },
 
   // JSX specific config (React Components in Renderer)
   {
-    files: ["src/renderer/**/*.{jsx}"],
+    files: ["src/renderer/**/*.jsx"],
     plugins: {
         react: pluginReact
     },
@@ -119,13 +157,23 @@ module.exports = [
     rules: {
       ...pluginReact.configs.recommended.rules,
       ...pluginJsxRuntime.rules,
+      // React 19 compatibility - JSX Transform handles React automatically
+      'react/jsx-uses-react': 'off',
+      'react/react-in-jsx-scope': 'off',
+      // Common rules adjustments
       'react/prop-types': 'off',
+      'react/display-name': 'off', // Allow anonymous components
+      'react/no-unescaped-entities': 'warn', // Warn instead of error for unescaped entities
       'no-unused-vars': ['warn', {
           'argsIgnorePattern': '^_',
-          'varsIgnorePattern': '^_',
-          'caughtErrors': 'none' // Ignore all caught errors regardless of name
+          'varsIgnorePattern': '^_|^React$', // Allow unused React import for compatibility
+          'caughtErrors': 'none', // Ignore all caught errors regardless of name
+          'destructuredArrayIgnorePattern': '^_' // Allow unused destructured array elements
       }],
-      'no-unreachable': 'warn'
+      'no-unreachable': 'warn',
+      // Project-specific exceptions for React components
+      'no-console': ['warn', { allow: ['warn', 'error'] }], // Allow console.warn and console.error (keep stricter for UI components)
+      'prefer-const': 'warn' // Warn instead of error
     }
   }
 ]; 
