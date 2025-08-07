@@ -172,6 +172,7 @@ class ProgressTracker {
         if (this.interval) {
           clearInterval(this.interval);
         }
+        this.interval = null;
         
         this.interval = setInterval(() => {
           this.updateSpinner();
