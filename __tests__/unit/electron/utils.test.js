@@ -1,5 +1,4 @@
 const utils = require('../../../electron/utils');
-const _path = require('path');
 
 describe('Electron Utils', () => {
   beforeEach(() => {

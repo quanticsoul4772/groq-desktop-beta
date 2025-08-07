@@ -7,12 +7,9 @@ const settingsManager = require('../../../electron/settingsManager');
 
 describe('Permission Error Handling (No Mocks)', () => {
   let testDir;
-  let _originalChmod;
-
   beforeEach(() => {
     // Create a temporary directory for permission tests
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'groq-permission-test-'));
-    _originalChmod = fs.chmod;
   });
 
   afterEach(() => {

@@ -1,6 +1,5 @@
 const settingsManager = require('../../../electron/settingsManager');
 const fs = require('fs');
-const _path = require('path');
 
 describe('SettingsManager', () => {
   const mockApp = {

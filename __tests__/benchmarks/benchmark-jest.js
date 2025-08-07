@@ -7,7 +7,6 @@
 
 const { spawn } = require('child_process');
 const fs = require('fs');
-const _path = require('path');
 
 function runJestCommand(command, cacheEnabled = true) {
   return new Promise((resolve, reject) => {

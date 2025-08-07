@@ -197,7 +197,7 @@ describe('API Resilience Integration Tests', () => {
   describe('Circuit Breaker Pattern', () => {
     test('opens circuit after consecutive failures', async () => {
       let circuitOpen = false;
-      let _failureCount = 0;
+      let failureCount = 0;
       const maxFailures = 3;
       const cooldownPeriod = 1000; // 1 second
       let lastFailureTime = 0;
@@ -213,7 +213,7 @@ describe('API Resilience Integration Tests', () => {
         // Check if circuit is open and cooldown period has passed
         if (circuitOpen && now - lastFailureTime > cooldownPeriod) {
           circuitOpen = false;
-          _failureCount = 0;
+          failureCount = 0;
         }
 
         // If circuit is open, fail fast
@@ -229,10 +229,10 @@ describe('API Resilience Integration Tests', () => {
           });
 
           if (!response.ok && response.status >= 500) {
-            _failureCount++;
+            failureCount++;
             lastFailureTime = now;
 
-            if (_failureCount >= maxFailures) {
+            if (failureCount >= maxFailures) {
               circuitOpen = true;
             }
 
@@ -241,13 +241,13 @@ describe('API Resilience Integration Tests', () => {
           }
 
           // Reset failure count on success
-          _failureCount = 0;
+          failureCount = 0;
           return await response.json();
         } catch (error) {
-          _failureCount++;
+          failureCount++;
           lastFailureTime = now;
 
-          if (_failureCount >= maxFailures) {
+          if (failureCount >= maxFailures) {
             circuitOpen = true;
           }
 
@@ -271,7 +271,7 @@ describe('API Resilience Integration Tests', () => {
 
     test('half-opens circuit after cooldown period', async () => {
       let circuitOpen = true;
-      let __failureCount = 3;
+      let failureCount = 3;
       const cooldownPeriod = 100; // Short period for testing
       let lastFailureTime = Date.now() - cooldownPeriod - 10; // Past cooldown
 
@@ -284,7 +284,7 @@ describe('API Resilience Integration Tests', () => {
         // Check if circuit can be half-opened
         if (circuitOpen && now - lastFailureTime > cooldownPeriod) {
           circuitOpen = false;
-          __failureCount = 0;
+          failureCount = 0;
         }
 
         if (circuitOpen) {
@@ -309,7 +309,7 @@ describe('API Resilience Integration Tests', () => {
 
   describe('Timeout Handling', () => {
     test('handles request timeouts', async () => {
-      const _timeoutScope = mockGroqTimeout();
+      mockGroqTimeout();
 
       const makeApiCallWithTimeout = async (timeoutMs = 1000) => {
         const controller = new AbortController();
