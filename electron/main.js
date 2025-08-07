@@ -9,8 +9,8 @@ const logStream = fs.createWriteStream(logFile, { flags: 'a' });
 
 // Mirror every console.* call to the file
 ['log', 'info', 'warn', 'error'].forEach((fn) => {
-  const orig = console[fn].bind(console);
-  console[fn] = (...args) => {
+  const orig = console[fn].bind(console); // eslint-disable-line no-console
+  console[fn] = (...args) => { // eslint-disable-line no-console
     orig(...args);
     logStream.write(args.map(String).join(' ') + '\n');
   };
