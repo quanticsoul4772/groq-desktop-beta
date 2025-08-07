@@ -405,6 +405,174 @@ Tests must verify that these errors are properly propagated and not hidden by ov
 - **React**: Use functional components and hooks
 - **Electron**: Follow Node.js best practices for main process code
 
+### ESLint Code Review Guidelines
+
+When reviewing PRs that fix ESLint warnings, maintainers should follow these guidelines to ensure high code quality and prevent workaround solutions.
+
+#### ❌ Reject These Workarounds
+
+**Never accept these approaches to suppress ESLint warnings:**
+
+- **Underscore prefixes for unused variables**: `const _unusedVar = getData();`
+- **Fake reference statements**: `void unusedVar; // Keep ESLint happy`
+- **Hacky solutions**: `eval('void 0'); // Disable unused var warning`
+- **Overly broad disable comments**: `/* eslint-disable */` without specificity
+
+#### ✅ Acceptable Solutions
+
+**These approaches address the root cause and maintain code quality:**
+
+1. **Remove truly unused code**
+   ```javascript
+   // ❌ Before
+   const unusedFunction = () => { /* never called */ };
+   const data = fetchData();
+   
+   // ✅ After - Remove what's not needed
+   const data = fetchData();
+   ```
+
+2. **Use targeted eslint-disable comments with clear explanations**
+   ```javascript
+   // ✅ Good - Specific rule with explanation
+   /* eslint-disable-next-line no-unused-vars */
+   const error = await apiCall(); // Error handling in catch block
+   ```
+
+3. **Update ESLint configuration for false positives**
+   ```javascript
+   // In eslint.config.js - Add specific pattern exceptions
+   'no-unused-vars': ['warn', {
+     'argsIgnorePattern': '^_',
+     'varsIgnorePattern': '^(React|debug)$'
+   }]
+   ```
+
+4. **Refactor code to eliminate the warning**
+   ```javascript
+   // ❌ Before
+   const handleSubmit = (event, data) => {
+     event.preventDefault(); // data unused
+   };
+   
+   // ✅ After - Use the parameter or remove it
+   const handleSubmit = (event) => {
+     event.preventDefault();
+   };
+   ```
+
+#### Code Review Checklist for ESLint Fixes
+
+When reviewing ESLint warning fixes, verify:
+
+- [ ] **Root cause addressed**: Are changes fixing the underlying issue, not just suppressing warnings?
+- [ ] **Configuration over suppression**: Could this be solved by updating ESLint config instead of code changes?
+- [ ] **Justified disable comments**: Are `eslint-disable` comments specific to the rule and well-documented?
+- [ ] **No runtime impact**: Will this change affect application behavior or performance?
+- [ ] **Long-term maintainability**: Is the fix sustainable and won't cause future issues?
+- [ ] **Documentation provided**: Are unusual patterns or necessary disable comments explained?
+
+#### Documentation Requirements
+
+When ESLint fixes require explanation:
+
+```javascript
+// ✅ Document why variables appear unused but are necessary
+/* eslint-disable-next-line no-unused-vars */
+const subscription = observable.subscribe(handleData);
+// subscription reference prevents garbage collection before component unmount
+```
+
+#### Testing Requirements for ESLint Fixes
+
+Before approving ESLint fixes:
+
+1. **Verify runtime behavior**: Ensure application still works correctly
+2. **Check error handling**: Verify error handling paths aren't broken
+3. **Run test suite**: All tests must still pass
+4. **Manual testing**: Test affected functionality manually if possible
+
+#### Common ESLint Patterns in This Project
+
+Based on our current ESLint configuration (`eslint.config.js`):
+
+**Unused Variables**: Currently configured with `'argsIgnorePattern': '^_'`
+```javascript
+// ✅ Acceptable - Prefix unused parameters
+const handleClick = (_event, data) => processData(data);
+
+// ❌ Don't do this for variables that should be removed
+const _unused = expensiveComputation(); // Just remove it instead
+```
+
+**Caught Errors**: Currently set to `'caughtErrors': 'none'`
+```javascript
+// ✅ Current config allows this
+try {
+  riskyOperation();
+} catch (error) {
+  // error parameter not flagged as unused
+  console.log('Operation failed');
+}
+```
+
+#### Examples: Good vs Bad Fixes
+
+**Scenario: Unused Import**
+
+```javascript
+// ❌ BAD - Fake usage
+import { debounce } from 'lodash';
+void debounce; // Suppresses warning but adds no value
+
+// ✅ GOOD - Remove unused import
+// import { debounce } from 'lodash'; // Removed
+```
+
+**Scenario: Error Variable in Catch Block**
+
+```javascript
+// ❌ BAD - Underscore prefix
+try {
+  await apiCall();
+} catch (_error) {
+  showGenericError();
+}
+
+// ✅ GOOD - Use the error or configure ESLint
+try {
+  await apiCall();
+} catch (error) {
+  logError(error.message);
+  showGenericError();
+}
+```
+
+**Scenario: React Component Parameter**
+
+```javascript
+// ❌ BAD - Fake reference
+const MyComponent = ({ data, unusedProp }) => {
+  void unusedProp;
+  return <div>{data.name}</div>;
+};
+
+// ✅ GOOD - Remove unused parameter
+const MyComponent = ({ data }) => {
+  return <div>{data.name}</div>;
+};
+```
+
+#### ESLint Rule-Specific Guidelines
+
+**no-unused-vars**: Prefer removal over suppression. Use underscored parameters only for callback signatures.
+
+**no-unreachable**: Fix control flow instead of disabling. Unreachable code indicates logic errors.
+
+**react/prop-types**: Currently disabled in config. Don't add prop-types for this project.
+
+These guidelines ensure consistent, high-quality solutions to ESLint warnings while maintaining code readability and functionality.
+
 ## Architecture Notes
 
 - **Frontend**: React 19 with Vite for fast development
