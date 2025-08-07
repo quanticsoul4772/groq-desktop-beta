@@ -4,12 +4,12 @@ const { spawn } = require('child_process');
 const os = require('os');
 
 console.log('🪟 Testing Popup Window Context Capture');
-console.log('=' .repeat(50));
+console.log('='.repeat(50));
 
 function showTestInstructions() {
   const platform = os.platform();
   const hotkey = platform === 'darwin' ? 'Cmd+G' : 'Ctrl+G';
-  
+
   console.log(`
 🎯 **How to Test the Popup Window:**
 
@@ -83,21 +83,21 @@ function startDevMode() {
   console.log('The popup window system will be active.');
   console.log(`Press ${os.platform() === 'darwin' ? 'Cmd+G' : 'Ctrl+G'} from any app to test!\n`);
 
-  const child = spawn('npm', ['run', 'dev'], { 
+  const child = spawn('npm', ['run', 'dev'], {
     stdio: 'inherit',
-    shell: true
+    shell: true,
   });
-  
+
   child.on('error', (error) => {
     console.error(`❌ Error starting dev mode: ${error.message}`);
   });
-  
+
   return child;
 }
 
 function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     console.log(`
 Usage: node test-popup-window.js [command]
@@ -119,9 +119,9 @@ Examples:
 `);
     return;
   }
-  
+
   const command = args[0];
-  
+
   switch (command) {
     case 'instructions':
       showTestInstructions();
@@ -140,4 +140,4 @@ Examples:
 
 if (require.main === module) {
   main();
-} 
+}

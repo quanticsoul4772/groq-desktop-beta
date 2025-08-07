@@ -12,17 +12,17 @@ const getScriptInfo = () => {
   if (process.platform === 'win32') {
     return {
       ext: process.env.SHELL && process.env.SHELL.includes('powershell') ? '.ps1' : '.cmd',
-      prefix: ''
+      prefix: '',
     };
   } else if (process.platform === 'linux') {
     return {
       ext: '.sh',
-      prefix: '-linux'
+      prefix: '-linux',
     };
   } else {
     return {
       ext: '.sh',
-      prefix: ''
+      prefix: '',
     };
   }
 };
@@ -37,7 +37,7 @@ if (process.platform === 'win32') {
   // Windows paths
   requiredPaths = [
     process.env.SystemRoot ? `${process.env.SystemRoot}\\System32` : 'SystemRoot not set',
-    process.env.USERPROFILE ? `${process.env.USERPROFILE}\\.deno\\bin` : 'USERPROFILE not set'
+    process.env.USERPROFILE ? `${process.env.USERPROFILE}\\.deno\\bin` : 'USERPROFILE not set',
   ];
 } else if (process.platform === 'linux') {
   // Linux paths
@@ -52,17 +52,17 @@ if (process.platform === 'win32') {
     '/usr/local/bin',
     '/usr/bin',
     process.env.HOME ? `${process.env.HOME}/.deno/bin` : 'HOME not set',
-    '/opt/homebrew/bin'
+    '/opt/homebrew/bin',
   ];
 }
 
 console.log('Required paths for this platform:');
-requiredPaths.forEach(p => console.log(`- ${p}`));
+requiredPaths.forEach((p) => console.log(`- ${p}`));
 
 // Test command resolution paths
 const commandsToTest = ['node', 'npm', 'deno', 'docker', 'python'];
 console.log('\nSimulated command resolution:');
-commandsToTest.forEach(cmd => {
+commandsToTest.forEach((cmd) => {
   const scriptName = `run-${cmd}${scriptInfo.prefix}${scriptInfo.ext}`;
   console.log(`${cmd} -> ${scriptName}`);
 });

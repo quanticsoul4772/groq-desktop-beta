@@ -37,11 +37,11 @@ describe('Mock Security', () => {
       // This demonstrates the proper way to customize frozen mocks
       const customElectron = { ...electronMock };
       const customApp = { ...electronMock.app };
-      
+
       // This should work fine
       customElectron.testProperty = 'test';
       customApp.customMethod = jest.fn();
-      
+
       expect(customElectron.testProperty).toBe('test');
       expect(customApp.customMethod).toBeDefined();
     });
@@ -57,10 +57,10 @@ describe('Mock Security', () => {
     test('tests must clone ipcMain mock to customize behavior', () => {
       // This demonstrates the proper way to customize frozen mocks
       const customIpcMain = { ...ipcMainMock };
-      
+
       // This should work fine
       customIpcMain.customMethod = jest.fn();
-      
+
       expect(customIpcMain.customMethod).toBeDefined();
     });
   });

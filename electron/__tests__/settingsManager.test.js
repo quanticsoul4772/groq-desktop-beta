@@ -5,7 +5,7 @@ jest.mock('electron-json-storage', () => ({
   has: jest.fn(),
   remove: jest.fn(),
   clear: jest.fn(),
-  getDataPath: jest.fn(() => '/mock/data/path')
+  getDataPath: jest.fn(() => '/mock/data/path'),
 }));
 
 // Mock electron
@@ -13,7 +13,7 @@ jest.mock('electron', () => require('../../__mocks__/electron'));
 
 // Mock dotenv
 jest.mock('dotenv', () => ({
-  config: jest.fn()
+  config: jest.fn(),
 }));
 
 // Mock fs
@@ -29,7 +29,7 @@ describe('SettingsManager Module', () => {
   describe('loadSettings', () => {
     test('returns default settings when app instance not initialized', () => {
       const settings = settingsManager.loadSettings();
-      
+
       expect(settings).toBeDefined();
       expect(settings).toHaveProperty('GROQ_API_KEY');
       expect(settings).toHaveProperty('model');
@@ -42,7 +42,7 @@ describe('SettingsManager Module', () => {
 
     test('includes all required default properties', () => {
       const settings = settingsManager.loadSettings();
-      
+
       const requiredProperties = [
         'GROQ_API_KEY',
         'model',
@@ -57,17 +57,17 @@ describe('SettingsManager Module', () => {
         'customApiBaseUrl',
         'customModels',
         'theme',
-        'enableSpellCheck'
+        'enableSpellCheck',
       ];
 
-      requiredProperties.forEach(prop => {
+      requiredProperties.forEach((prop) => {
         expect(settings).toHaveProperty(prop);
       });
     });
 
     test('returns object with correct default values', () => {
       const settings = settingsManager.loadSettings();
-      
+
       expect(settings.temperature).toBe(0.7);
       expect(settings.top_p).toBe(0.95);
       expect(settings.popupEnabled).toBe(true);
@@ -88,7 +88,7 @@ describe('SettingsManager Module', () => {
     test('accepts app and ipcMain parameters', () => {
       const mockApp = { getPath: jest.fn() };
       const mockIpcMain = { handle: jest.fn() };
-      
+
       // Should not throw
       expect(() => {
         settingsManager.initializeSettingsHandlers(mockApp, mockIpcMain);

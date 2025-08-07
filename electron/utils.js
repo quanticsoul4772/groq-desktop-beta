@@ -25,5 +25,5 @@ function limitContentLength(content, maxLength = 8000) {
 }
 
 module.exports = {
-    limitContentLength
-}; 
+  limitContentLength,
+};

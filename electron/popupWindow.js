@@ -15,11 +15,11 @@ class PopupWindowManager {
     }
 
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
-    
+
     // Popup dimensions
     const popupWidth = 500;
     const initialPopupHeight = 100; // Height for just the input box
-    
+
     // Position the popup at the mouse cursor or bottom center if no position is provided
     let x, y;
     if (mousePosition) {
@@ -54,14 +54,15 @@ class PopupWindowManager {
         nodeIntegration: false,
         contextIsolation: true,
         preload: path.join(__dirname, 'preload.js'),
-        enableRemoteModule: false
-      }
+        enableRemoteModule: false,
+      },
     });
 
     // Determine URL based on environment
-    const popupUrl = process.env.NODE_ENV === 'development'
-      ? 'http://localhost:5173/#/popup'
-      : `file://${path.join(__dirname, '../dist/index.html')}#/popup`;
+    const popupUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:5173/#/popup'
+        : `file://${path.join(__dirname, '../dist/index.html')}#/popup`;
 
     this.popupWindow.loadURL(popupUrl);
 
@@ -73,7 +74,7 @@ class PopupWindowManager {
       this.popupWindow.show();
       this.popupWindow.focus();
       this.isPopupOpen = true;
-      
+
       // Send captured context to the popup once it's ready
       if (capturedContext) {
         this.popupWindow.webContents.send('popup-context', capturedContext);
@@ -122,9 +123,9 @@ class PopupWindowManager {
     if (this.isOpen()) {
       const window = this.getPopupWindow();
       const wasResizable = window.isResizable();
-      const { workAreaSize } = screen.getPrimaryDisplay();
+      const { workAreaSize: _workAreaSize } = screen.getPrimaryDisplay();
       const bounds = window.getBounds();
-      
+
       const newBounds = {
         width,
         height,
@@ -135,7 +136,7 @@ class PopupWindowManager {
         newBounds.x = bounds.x - Math.round((width - bounds.width) / 2);
         newBounds.y = bounds.y + bounds.height - height - 100;
       }
-      
+
       window.setBounds(newBounds, false);
 
       window.setResizable(resizable);
@@ -168,4 +169,4 @@ class PopupWindowManager {
   }
 }
 
-module.exports = PopupWindowManager; 
+module.exports = PopupWindowManager;

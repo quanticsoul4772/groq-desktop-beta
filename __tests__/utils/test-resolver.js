@@ -6,7 +6,7 @@ const resolver = require('./electron/commandResolver');
 // Mock app instance for initialization
 const mockApp = {
   isPackaged: false,
-  getAppPath: () => __dirname
+  getAppPath: () => __dirname,
 };
 
 // Initialize resolver
@@ -20,7 +20,7 @@ const commands = ['node', 'deno', 'npx', 'docker', 'uvx'];
 
 // Test resolver on current platform
 console.log('\nCommand resolution on current platform:');
-commands.forEach(cmd => {
+commands.forEach((cmd) => {
   try {
     const resolvedPath = resolver.resolveCommandPath(cmd);
     console.log(`${cmd} -> ${resolvedPath}`);
@@ -35,23 +35,29 @@ commands.forEach(cmd => {
 // Function to check if path format matches expected platform format
 function checkPathFormat(scriptPath, platform) {
   if (!scriptPath) return false;
-  
+
   if (platform === 'win32') {
     // Windows should resolve to either .cmd or .ps1 scripts, or direct commands
     const baseName = path.basename(scriptPath);
-    return baseName === scriptPath || // Direct command
-           scriptPath.endsWith('.cmd') || 
-           scriptPath.endsWith('.ps1');
+    return (
+      baseName === scriptPath || // Direct command
+      scriptPath.endsWith('.cmd') ||
+      scriptPath.endsWith('.ps1')
+    );
   } else if (platform === 'linux') {
     // Linux should resolve to -linux.sh scripts or direct commands
     const baseName = path.basename(scriptPath);
-    return baseName === scriptPath || // Direct command
-           scriptPath.includes('-linux.sh');
+    return (
+      baseName === scriptPath || // Direct command
+      scriptPath.includes('-linux.sh')
+    );
   } else {
     // macOS should resolve to .sh scripts without -linux or direct commands
     const baseName = path.basename(scriptPath);
-    return baseName === scriptPath || // Direct command
-           (scriptPath.endsWith('.sh') && !scriptPath.includes('-linux'));
+    return (
+      baseName === scriptPath || // Direct command
+      (scriptPath.endsWith('.sh') && !scriptPath.includes('-linux'))
+    );
   }
 }
 

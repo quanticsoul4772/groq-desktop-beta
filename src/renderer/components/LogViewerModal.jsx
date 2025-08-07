@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AnsiToHtml from 'ansi-to-html';
 
-const converter = new AnsiToHtml({ newline: true, colors: {
+const converter = new AnsiToHtml({
+  newline: true,
+  colors: {
     0: '#000', // black
     1: '#B00', // red
     2: '#0B0', // green
@@ -17,8 +19,9 @@ const converter = new AnsiToHtml({ newline: true, colors: {
     12: '#61AFEF', // bright blue (same as blue for better contrast)
     13: '#C678DD', // bright magenta
     14: '#56B6C2', // bright cyan (same as cyan)
-    15: '#FFFFFF'  // bright white
-}}); // Create a converter instance
+    15: '#FFFFFF', // bright white
+  },
+}); // Create a converter instance
 
 // Custom hook for LogViewerModal to separate logic
 function useLogViewer(serverId, transportType) {
@@ -29,14 +32,16 @@ function useLogViewer(serverId, transportType) {
 
   // Function to scroll to the bottom of the logs
   const scrollToBottom = () => {
-    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   // Fetch initial logs or set SSE message
   useEffect(() => {
     if (transportType === 'sse') {
       // For SSE, just display the info message and don't fetch
-      setLogs(["[Info: Logs for SSE servers must be checked directly on the server. Stdout/stderr is not captured.]"]);
+      setLogs([
+        '[Info: Logs for SSE servers must be checked directly on the server. Stdout/stderr is not captured.]',
+      ]);
       setIsLoading(false);
       setError(null);
       return; // Skip fetching and live updates for SSE
@@ -61,8 +66,8 @@ function useLogViewer(serverId, transportType) {
     if (serverId) {
       fetchLogs();
     } else {
-       setLogs(['[No server ID specified]']);
-       setIsLoading(false);
+      setLogs(['[No server ID specified]']);
+      setIsLoading(false);
     }
   }, [serverId, transportType]);
 
@@ -70,19 +75,19 @@ function useLogViewer(serverId, transportType) {
   useEffect(() => {
     // Only subscribe for stdio transports
     if (!serverId || transportType === 'sse') {
-        return;
+      return;
     }
 
     const handleLogUpdate = (updatedServerId, logChunk) => {
       if (updatedServerId === serverId) {
-        setLogs(prevLogs => {
-           // Append new lines, splitting the chunk if it contains multiple lines
-           const newLines = logChunk.split('\n');
-           const updated = [...prevLogs, ...newLines];
-           // Maintain max lines (optional, main process already limits buffer)
-           // const MAX_VIEW_LINES = 1000; // Example limit for frontend display
-           // return updated.slice(-MAX_VIEW_LINES);
-           return updated;
+        setLogs((prevLogs) => {
+          // Append new lines, splitting the chunk if it contains multiple lines
+          const newLines = logChunk.split('\n');
+          const updated = [...prevLogs, ...newLines];
+          // Maintain max lines (optional, main process already limits buffer)
+          // const MAX_VIEW_LINES = 1000; // Example limit for frontend display
+          // return updated.slice(-MAX_VIEW_LINES);
+          return updated;
         });
       }
     };
@@ -110,7 +115,9 @@ function LogViewerModal({ serverId, transportType, onClose }) {
   const { logs, isLoading, error } = useLogViewer(serverId, transportType);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]"> {/* Higher z-index than ToolsPanel */}
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60]">
+      {' '}
+      {/* Higher z-index than ToolsPanel */}
       <div className="bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-lg shadow-xl overflow-hidden flex flex-col border border-gray-700">
         {/* Header */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
@@ -122,8 +129,19 @@ function LogViewerModal({ serverId, transportType, onClose }) {
             className="text-gray-400 hover:text-gray-200"
             aria-label="Close log viewer"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -133,12 +151,12 @@ function LogViewerModal({ serverId, transportType, onClose }) {
           {isLoading ? (
             <p className="text-gray-400">Loading logs...</p>
           ) : error ? (
-             <p className="text-red-400">{error}</p>
+            <p className="text-red-400">{error}</p>
           ) : (
             <pre className="text-gray-300 whitespace-pre-wrap break-words">
               {/* Render each log line processed by ansi-to-html */}
               {logs.map((line, index) => (
-                  <div key={index} dangerouslySetInnerHTML={{ __html: converter.toHtml(line) }} />
+                <div key={index} dangerouslySetInnerHTML={{ __html: converter.toHtml(line) }} />
               ))}
               {/* Invisible element to scroll to */}
               <div ref={logsEndRef} />
@@ -160,4 +178,4 @@ function LogViewerModal({ serverId, transportType, onClose }) {
   );
 }
 
-export default LogViewerModal; 
+export default LogViewerModal;

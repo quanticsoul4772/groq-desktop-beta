@@ -7,7 +7,7 @@ const electron = {
         appData: '/mock/app/data',
         logs: '/mock/logs',
         temp: '/mock/temp',
-        home: '/mock/home'
+        home: '/mock/home',
       };
       return paths[name] || '/mock/path';
     }),
@@ -15,9 +15,9 @@ const electron = {
     getName: jest.fn(() => 'Groq Desktop'),
     quit: jest.fn(),
     on: jest.fn(),
-    whenReady: jest.fn(() => Promise.resolve())
+    whenReady: jest.fn(() => Promise.resolve()),
   },
-  
+
   BrowserWindow: jest.fn().mockImplementation(() => ({
     loadURL: jest.fn(),
     loadFile: jest.fn(),
@@ -25,50 +25,50 @@ const electron = {
     webContents: {
       send: jest.fn(),
       on: jest.fn(),
-      openDevTools: jest.fn()
+      openDevTools: jest.fn(),
     },
     show: jest.fn(),
     close: jest.fn(),
     destroy: jest.fn(),
     isDestroyed: jest.fn(() => false),
-    setAlwaysOnTop: jest.fn()
+    setAlwaysOnTop: jest.fn(),
   })),
-  
+
   ipcMain: {
     handle: jest.fn(),
     on: jest.fn(),
     removeHandler: jest.fn(),
-    removeAllListeners: jest.fn()
+    removeAllListeners: jest.fn(),
   },
-  
+
   ipcRenderer: {
     send: jest.fn(),
     on: jest.fn(),
     invoke: jest.fn(),
     removeListener: jest.fn(),
-    removeAllListeners: jest.fn()
+    removeAllListeners: jest.fn(),
   },
-  
+
   dialog: {
     showOpenDialog: jest.fn(),
     showSaveDialog: jest.fn(),
     showMessageBox: jest.fn(),
-    showErrorBox: jest.fn()
+    showErrorBox: jest.fn(),
   },
-  
+
   Menu: {
     buildFromTemplate: jest.fn(),
-    setApplicationMenu: jest.fn()
+    setApplicationMenu: jest.fn(),
   },
-  
+
   shell: {
     openExternal: jest.fn(),
-    openPath: jest.fn()
+    openPath: jest.fn(),
   },
-  
+
   contextBridge: {
-    exposeInMainWorld: jest.fn()
-  }
+    exposeInMainWorld: jest.fn(),
+  },
 };
 
 // Freeze the mock to prevent tampering

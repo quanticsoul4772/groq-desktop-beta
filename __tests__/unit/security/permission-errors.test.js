@@ -7,12 +7,12 @@ const settingsManager = require('../../../electron/settingsManager');
 
 describe('Permission Error Handling (No Mocks)', () => {
   let testDir;
-  let originalChmod;
-  
+  let _originalChmod;
+
   beforeEach(() => {
     // Create a temporary directory for permission tests
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'groq-permission-test-'));
-    originalChmod = fs.chmod;
+    _originalChmod = fs.chmod;
   });
 
   afterEach(() => {
@@ -39,24 +39,26 @@ describe('Permission Error Handling (No Mocks)', () => {
       try {
         // Make directory read-only
         fs.chmodSync(testDir, 0o444);
-        
+
         // Create a mock app that returns our read-only test directory
         const mockApp = {
-          getPath: () => testDir
+          getPath: () => testDir,
         };
-        
+
         // Initialize settingsManager with the restricted directory
-        settingsManager.initializeSettingsHandlers({
-          handle: jest.fn()
-        }, mockApp);
-        
+        settingsManager.initializeSettingsHandlers(
+          {
+            handle: jest.fn(),
+          },
+          mockApp
+        );
+
         // Attempt to save settings should fail with permission error
         const testFilePath = path.join(testDir, 'settings.json');
-        
+
         expect(() => {
           fs.writeFileSync(testFilePath, JSON.stringify({ test: 'data' }));
         }).toThrow(/EACCES|permission denied/i);
-        
       } finally {
         // Restore permissions for cleanup
         try {
@@ -68,24 +70,23 @@ describe('Permission Error Handling (No Mocks)', () => {
     });
 
     test('should throw EPERM when attempting to write to non-writable file', async () => {
-      // Skip on Windows as chmod behaves differently  
+      // Skip on Windows as chmod behaves differently
       if (process.platform === 'win32') {
         console.log('Skipping permission test on Windows');
         return;
       }
 
       const testFilePath = path.join(testDir, 'readonly-settings.json');
-      
+
       try {
         // Create a file and make it read-only
         fs.writeFileSync(testFilePath, JSON.stringify({ existing: 'data' }));
         fs.chmodSync(testFilePath, 0o444);
-        
+
         // Attempt to overwrite should fail
         expect(() => {
           fs.writeFileSync(testFilePath, JSON.stringify({ new: 'data' }));
         }).toThrow(/EACCES|permission denied/i);
-        
       } finally {
         // Restore permissions for cleanup
         try {
@@ -98,7 +99,7 @@ describe('Permission Error Handling (No Mocks)', () => {
 
     test('should handle ENOENT error when reading non-existent file', () => {
       const nonExistentPath = path.join(testDir, 'does-not-exist.json');
-      
+
       expect(() => {
         fs.readFileSync(nonExistentPath, 'utf8');
       }).toThrow(/ENOENT|no such file or directory/i);
@@ -115,21 +116,24 @@ describe('Permission Error Handling (No Mocks)', () => {
     test('settingsManager should handle filesystem errors gracefully', () => {
       // Create a mock app that points to a non-existent path
       const mockApp = {
-        getPath: () => '/invalid/path/that/does/not/exist'
+        getPath: () => '/invalid/path/that/does/not/exist',
       };
 
       // This should not crash but should handle the error gracefully
       expect(() => {
-        settingsManager.initializeSettingsHandlers({
-          handle: jest.fn()
-        }, mockApp);
+        settingsManager.initializeSettingsHandlers(
+          {
+            handle: jest.fn(),
+          },
+          mockApp
+        );
       }).not.toThrow();
     });
 
     test('loadSettings should return defaults when filesystem errors occur', () => {
       // Test by attempting to read from a path that will cause permission issues
       const settings = settingsManager.loadSettings();
-      
+
       // Should return valid defaults even if file operations fail
       expect(settings).toHaveProperty('GROQ_API_KEY');
       expect(settings).toHaveProperty('model');
@@ -142,7 +146,7 @@ describe('Permission Error Handling (No Mocks)', () => {
     test('code should not silently swallow EACCES errors', async () => {
       // This test ensures that permission errors are properly propagated
       // and not caught and ignored
-      
+
       if (process.platform === 'win32') {
         console.log('Skipping EACCES detection test on Windows');
         return;
@@ -151,10 +155,10 @@ describe('Permission Error Handling (No Mocks)', () => {
       const readOnlyDir = path.join(testDir, 'readonly');
       fs.mkdirSync(readOnlyDir);
       fs.chmodSync(readOnlyDir, 0o444);
-      
+
       try {
         const testFile = path.join(readOnlyDir, 'test.json');
-        
+
         // This MUST throw and not be silently caught
         let errorThrown = false;
         try {
@@ -163,7 +167,7 @@ describe('Permission Error Handling (No Mocks)', () => {
           errorThrown = true;
           expect(error.code).toBe('EACCES');
         }
-        
+
         expect(errorThrown).toBe(true);
       } finally {
         fs.chmodSync(readOnlyDir, 0o755);
@@ -179,7 +183,7 @@ describe('Permission Error Handling (No Mocks)', () => {
       const testFile = path.join(testDir, 'protected.json');
       fs.writeFileSync(testFile, 'initial data');
       fs.chmodSync(testFile, 0o444);
-      
+
       try {
         // This MUST throw and not be silently caught
         let errorThrown = false;
@@ -189,7 +193,7 @@ describe('Permission Error Handling (No Mocks)', () => {
           errorThrown = true;
           expect(['EACCES', 'EPERM']).toContain(error.code);
         }
-        
+
         expect(errorThrown).toBe(true);
       } finally {
         fs.chmodSync(testFile, 0o644);

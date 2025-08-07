@@ -13,7 +13,7 @@ async function runTests() {
   const verbose = args.includes('--verbose') || args.includes('-v');
   const coverage = args.includes('--coverage');
   const watch = args.includes('--watch');
-  
+
   try {
     if (watch) {
       // Don't use progress tracking for watch mode
@@ -24,14 +24,14 @@ async function runTests() {
       await ProgressTracker.execWithProgress('pnpm test:coverage', {
         name: 'Jest Tests with Coverage',
         verbose,
-        estimatedDuration: 30
+        estimatedDuration: 30,
       });
     } else {
       // Run regular test suite
       await ProgressTracker.execWithProgress('pnpm test:ci', {
         name: 'Jest Test Suite',
         verbose,
-        estimatedDuration: 25
+        estimatedDuration: 25,
       });
     }
 

@@ -48,11 +48,13 @@ pnpm approve-builds
 ### 3. Set Up Environment Variables
 
 1. Copy the example environment file:
+
    ```bash
    cp env.example .env
    ```
 
 2. Edit `.env` and add your Groq API key:
+
    ```
    GROQ_API_KEY=your_actual_groq_api_key_here
    ```
@@ -66,24 +68,25 @@ pnpm dev
 ```
 
 This command:
+
 - Starts the Vite development server for the React frontend
 - Launches the Electron app in development mode
 - Enables hot reload for both frontend and Electron main process
 
 ## Development Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start development server (Vite + Electron) |
-| `pnpm dev:vite` | Start only the Vite dev server |
-| `pnpm dev:electron` | Start only Electron (requires built frontend) |
-| `pnpm build` | Build the React frontend for production |
-| `pnpm dist` | Build production packages for current platform |
-| `pnpm dist:mac` | Build for macOS only |
-| `pnpm dist:win` | Build for Windows only |
-| `pnpm dist:linux` | Build for Linux only |
-| `pnpm test:platforms` | Run cross-platform compatibility tests |
-| `pnpm test:paths` | Test path handling across platforms |
+| Command               | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| `pnpm dev`            | Start development server (Vite + Electron)     |
+| `pnpm dev:vite`       | Start only the Vite dev server                 |
+| `pnpm dev:electron`   | Start only Electron (requires built frontend)  |
+| `pnpm build`          | Build the React frontend for production        |
+| `pnpm dist`           | Build production packages for current platform |
+| `pnpm dist:mac`       | Build for macOS only                           |
+| `pnpm dist:win`       | Build for Windows only                         |
+| `pnpm dist:linux`     | Build for Linux only                           |
+| `pnpm test:platforms` | Run cross-platform compatibility tests         |
+| `pnpm test:paths`     | Test path handling across platforms            |
 
 ## Project Structure
 
@@ -128,7 +131,7 @@ pnpm test:coverage
 # Run unit tests only
 pnpm test:unit
 
-# Run integration tests only  
+# Run integration tests only
 pnpm test:integration
 
 # Run tests in watch mode (for development)
@@ -153,22 +156,26 @@ pnpm test:paths
 #### Jest Cache Configuration
 
 The project uses Jest caching to improve test performance:
+
 - **Transform caching**: Babel transformations are cached in `.jest-cache/`
 - **Parallel execution**: Tests run with 50% of available CPU cores
 - **CI optimization**: GitHub Actions caches both dependencies and Jest cache
 
 Expected performance improvements:
+
 - **Local development**: 20-40% faster on subsequent runs
 - **CI/CD pipeline**: 20-30% faster with warm cache
 
 #### Writing Tests
 
 **Unit Tests** - Place in `__tests__/unit/`:
+
 - **React Components**: Test rendering, user interactions, props handling
 - **Electron Modules**: Test IPC communication, settings, file operations
 - **Utilities**: Test helper functions, data transformations
 
 **Integration Tests** - Place in `__tests__/integration/`:
+
 - **API Resilience**: Test retry logic, circuit breakers, rate limiting
 - **Cache Behavior**: Test hits/misses, TTL, tag invalidation
 - **Cross-Module Communication**: Test Electron main-renderer IPC
@@ -188,7 +195,7 @@ Expected performance improvements:
 - **Functions**: ≥90%
 - **Statements**: ≥90%
 
-*The build will fail if coverage drops below these thresholds.*
+_The build will fail if coverage drops below these thresholds._
 
 #### Example Component Test
 
@@ -232,6 +239,7 @@ describe('MyModule', () => {
 ### Coverage Monitoring
 
 To check coverage locally:
+
 ```bash
 pnpm test:coverage
 # View HTML report
@@ -275,6 +283,7 @@ More detailed explanation if needed
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -284,6 +293,7 @@ More detailed explanation if needed
 - `chore`: Maintenance tasks
 
 **Examples:**
+
 ```
 feat(chat): add image upload support
 fix(electron): resolve window focus issue on macOS
@@ -317,11 +327,13 @@ docs(readme): update installation instructions
 #### Testing Requirements
 
 **🔴 PRs will be blocked if:**
+
 - Coverage drops below 90%
 - Tests fail on CI
 - New code lacks appropriate tests
 
 **✅ All new code must include:**
+
 - Unit tests for functions/components
 - Integration tests for cross-module features
 - Mocks for external dependencies (following security guidelines)
@@ -378,8 +390,9 @@ describe('Permission Handling (No Mocks)', () => {
 #### 4. Error Handling Requirements
 
 All filesystem operations must:
+
 - Handle `EACCES` (permission denied) errors appropriately
-- Handle `EPERM` (operation not permitted) errors appropriately  
+- Handle `EPERM` (operation not permitted) errors appropriately
 - Handle `ENOENT` (file not found) errors appropriately
 - **Not silently swallow** any of these errors unless explicitly intended
 
@@ -409,14 +422,17 @@ Tests must verify that these errors are properly propagated and not hidden by ov
 ## Platform-Specific Development
 
 ### macOS
+
 - After building, you may need: `xattr -c /Applications/Groq\ Desktop.app`
 - Homebrew installation available via unofficial tap
 
 ### Windows
+
 - PowerShell scripts available for testing
 - Builds create both NSIS installer and portable executable
 
 ### Linux
+
 - Builds create AppImage, deb, and rpm packages
 - Ensure build tools are installed
 

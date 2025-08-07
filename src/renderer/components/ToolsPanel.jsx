@@ -24,17 +24,20 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
             // Determine transport type accurately
             let transportType = 'stdio'; // Default
             if (config.transport === 'sse') {
-                transportType = 'sse';
+              transportType = 'sse';
             } else if (config.transport === 'streamableHttp') {
-                transportType = 'streamableHttp';
+              transportType = 'streamableHttp';
             }
 
             return {
               id,
               command: transportType === 'stdio' ? config.command : undefined,
-              args: transportType === 'stdio' ? (config.args || []) : [],
-              url: (transportType === 'sse' || transportType === 'streamableHttp') ? config.url : undefined,
-              transport: transportType // Store the correct transport type
+              args: transportType === 'stdio' ? config.args || [] : [],
+              url:
+                transportType === 'sse' || transportType === 'streamableHttp'
+                  ? config.url
+                  : undefined,
+              transport: transportType, // Store the correct transport type
             };
           });
           setConfiguredServers(servers);
@@ -44,9 +47,9 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
 
           // Determine which servers are currently connected
           const statuses = {};
-          servers.forEach(server => {
+          servers.forEach((server) => {
             // Check if there are tools from this server
-            const hasToolsFromServer = tools.some(tool => tool.serverId === server.id);
+            const hasToolsFromServer = tools.some((tool) => tool.serverId === server.id);
             statuses[server.id] = hasToolsFromServer ? 'connected' : 'disconnected';
           });
           setServerStatuses(statuses);
@@ -55,7 +58,7 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
         console.error('Error loading configured servers:', error);
       }
     };
-    
+
     loadConfiguredServers();
   }, [tools]);
 
@@ -67,18 +70,18 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
       if (data && actionInProgress === data.serverId) {
         setActionInProgress(null);
         if (!data.success) {
-             // Optionally show an error toast if reconnect failed after auth
-             console.error(`Auth reconnect failed for ${data.serverId}: ${data.error}`);
-             // Keep server disconnected, potentially reset authRequired flag?
-             // setAuthRequiredServers(prev => ({ ...prev, [data.serverId]: true }));
+          // Optionally show an error toast if reconnect failed after auth
+          console.error(`Auth reconnect failed for ${data.serverId}: ${data.error}`);
+          // Keep server disconnected, potentially reset authRequired flag?
+          // setAuthRequiredServers(prev => ({ ...prev, [data.serverId]: true }));
         } else {
-            // Success state is handled by the main status update driven by notifyMcpServerStatus
-            // but we should clear the authRequired flag here
-            setAuthRequiredServers(prev => {
-                 const newState = { ...prev };
-                 delete newState[data.serverId];
-                 return newState;
-            });
+          // Success state is handled by the main status update driven by notifyMcpServerStatus
+          // but we should clear the authRequired flag here
+          setAuthRequiredServers((prev) => {
+            const newState = { ...prev };
+            delete newState[data.serverId];
+            return newState;
+          });
         }
       }
     });
@@ -98,7 +101,7 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    
+
     // Clean up the event listener when the component unmounts
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -106,20 +109,20 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
   }, [onClose]);
 
   const toggleToolExpand = (toolName) => {
-    setExpandedTools(prev => ({
+    setExpandedTools((prev) => ({
       ...prev,
-      [toolName]: !prev[toolName]
+      [toolName]: !prev[toolName],
     }));
   };
 
   const handleDisconnect = async (serverId) => {
     if (!onDisconnectServer || serverStatuses[serverId] !== 'connected') return;
-    
+
     setActionInProgress(serverId);
     try {
       const success = await onDisconnectServer(serverId);
       if (success) {
-        setServerStatuses(prev => ({ ...prev, [serverId]: 'disconnected' }));
+        setServerStatuses((prev) => ({ ...prev, [serverId]: 'disconnected' }));
       }
     } catch (error) {
       console.error(`Error disconnecting from server ${serverId}:`, error);
@@ -130,55 +133,64 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
 
   const handleReconnect = async (serverId) => {
     if (!onReconnectServer || serverStatuses[serverId] !== 'disconnected') return;
-    
+
     setActionInProgress(serverId);
     try {
       const result = await onReconnectServer(serverId);
 
       if (result && result.requiresAuth) {
         console.warn(`Authorization required for server ${serverId}.`);
-        setAuthRequiredServers(prev => ({ ...prev, [serverId]: true }));
-        setServerStatuses(prev => ({ ...prev, [serverId]: 'disconnected' })); // Keep disconnected
+        setAuthRequiredServers((prev) => ({ ...prev, [serverId]: true }));
+        setServerStatuses((prev) => ({ ...prev, [serverId]: 'disconnected' })); // Keep disconnected
         // Optionally: show a toast/notification to the user
       } else if (result && result.success) {
         console.log(`Successfully reconnected to server ${serverId}.`);
-        setAuthRequiredServers(prev => {
+        setAuthRequiredServers((prev) => {
           const newState = { ...prev };
           delete newState[serverId];
           return newState;
         });
-        setServerStatuses(prev => ({ ...prev, [serverId]: 'connected' }));
+        setServerStatuses((prev) => ({ ...prev, [serverId]: 'connected' }));
       } else {
         // Handle explicit failure or unexpected result structure
-        console.error(`Failed to reconnect to server ${serverId}:`, result?.error || 'Unknown reason');
-        setServerStatuses(prev => ({ ...prev, [serverId]: 'disconnected' })); // Ensure disconnected
+        console.error(
+          `Failed to reconnect to server ${serverId}:`,
+          result?.error || 'Unknown reason'
+        );
+        setServerStatuses((prev) => ({ ...prev, [serverId]: 'disconnected' })); // Ensure disconnected
       }
     } catch (error) {
       console.error(`Error during reconnect handler for ${serverId}:`, error);
-      setServerStatuses(prev => ({ ...prev, [serverId]: 'disconnected' })); // Ensure disconnected on catch
+      setServerStatuses((prev) => ({ ...prev, [serverId]: 'disconnected' })); // Ensure disconnected on catch
     } finally {
       setActionInProgress(null);
     }
   };
 
   const handleAuthorizeServer = async (serverId) => {
-    const server = configuredServers.find(s => s.id === serverId);
-    if (!server || server.transport === 'stdio' || !server.url) { // Only allow for SSE with URL
-        console.error("Cannot start auth flow: server config is not SSE or URL missing for", serverId);
-        // Show error message to user?
-        return;
+    const server = configuredServers.find((s) => s.id === serverId);
+    if (!server || server.transport === 'stdio' || !server.url) {
+      // Only allow for SSE with URL
+      console.error(
+        'Cannot start auth flow: server config is not SSE or URL missing for',
+        serverId
+      );
+      // Show error message to user?
+      return;
     }
     console.log(`Starting authorization flow for server ${serverId} at ${server.url}...`);
     setActionInProgress(serverId); // Show loading/indicator on the button
     try {
-        // Send IPC message to main process
-        await window.electron.startMcpAuthFlow({ serverId: server.id, serverUrl: server.url });
-        console.log(`Authorization flow initiated for ${serverId}. Please follow browser instructions.`);
-        // Keep actionInProgress until user tries to reconnect or main process sends completion signal
+      // Send IPC message to main process
+      await window.electron.startMcpAuthFlow({ serverId: server.id, serverUrl: server.url });
+      console.log(
+        `Authorization flow initiated for ${serverId}. Please follow browser instructions.`
+      );
+      // Keep actionInProgress until user tries to reconnect or main process sends completion signal
     } catch (error) {
-        console.error(`Error initiating auth flow for ${serverId}:`, error);
-        // Show error message to user?
-        setActionInProgress(null);
+      console.error(`Error initiating auth flow for ${serverId}:`, error);
+      // Show error message to user?
+      setActionInProgress(null);
     }
   };
 
@@ -186,22 +198,22 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
     try {
       const settings = await window.electron.getSettings();
       let updatedDisabledServers = [...(settings.disabledMcpServers || [])];
-      
+
       if (enabled) {
         // Remove from disabled list (enable auto-start)
-        updatedDisabledServers = updatedDisabledServers.filter(id => id !== serverId);
+        updatedDisabledServers = updatedDisabledServers.filter((id) => id !== serverId);
       } else {
         // Add to disabled list (disable auto-start)
         if (!updatedDisabledServers.includes(serverId)) {
           updatedDisabledServers.push(serverId);
         }
       }
-      
+
       const updatedSettings = {
         ...settings,
-        disabledMcpServers: updatedDisabledServers
+        disabledMcpServers: updatedDisabledServers,
       };
-      
+
       const result = await window.electron.saveSettings(updatedSettings);
       if (result.success) {
         setDisabledServers(updatedDisabledServers);
@@ -226,8 +238,8 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
 
   // Servers with no tools (disconnected)
   const disconnectedServers = configuredServers
-    .filter(server => !toolsByServer[server.id])
-    .map(server => server.id);
+    .filter((server) => !toolsByServer[server.id])
+    .map((server) => server.id);
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
@@ -236,21 +248,28 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
           <div className="space-y-1">
             <CardTitle className="text-2xl">Available Tools</CardTitle>
             <CardDescription>
-              {tools.length} tools available across {Object.keys(toolsByServer).length} connected servers
+              {tools.length} tools available across {Object.keys(toolsByServer).length} connected
+              servers
             </CardDescription>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={onClose}
-            className="shrink-0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </Button>
         </CardHeader>
-        
+
         <CardContent className="flex-1 overflow-y-auto">
           {/* Show configured servers section */}
           {configuredServers.length > 0 && (
@@ -259,21 +278,35 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
               <Card className="mb-4">
                 <CardContent className="p-0">
                   {configuredServers.map((server, index) => (
-                    <div key={server.id} className={cn(
-                      "p-4 flex justify-between items-center",
-                      index !== configuredServers.length - 1 && "border-b"
-                    )}>
+                    <div
+                      key={server.id}
+                      className={cn(
+                        'p-4 flex justify-between items-center',
+                        index !== configuredServers.length - 1 && 'border-b'
+                      )}
+                    >
                       <div className="space-y-2">
                         <div className="flex items-center gap-3">
                           <span className="font-medium">{server.id}</span>
-                          <Badge variant={serverStatuses[server.id] === 'connected' ? 'default' : 'secondary'}>
-                            {serverStatuses[server.id] === 'connected' ? 'Connected' : 'Disconnected'}
+                          <Badge
+                            variant={
+                              serverStatuses[server.id] === 'connected' ? 'default' : 'secondary'
+                            }
+                          >
+                            {serverStatuses[server.id] === 'connected'
+                              ? 'Connected'
+                              : 'Disconnected'}
                           </Badge>
                           <div className="flex items-center gap-2 text-sm">
                             <span className="text-muted-foreground">Auto-start:</span>
                             <Switch
                               checked={!disabledServers.includes(server.id)}
-                              onChange={() => handleToggleAutoStart(server.id, disabledServers.includes(server.id))}
+                              onChange={() =>
+                                handleToggleAutoStart(
+                                  server.id,
+                                  disabledServers.includes(server.id)
+                                )
+                              }
                               id={`autostart-${server.id}`}
                             />
                           </div>
@@ -281,20 +314,36 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                         <div className="space-y-1 text-sm text-muted-foreground">
                           {server.transport === 'sse' ? (
                             <>
-                              <div><span className="font-mono">Type: SSE</span></div>
-                              <div><span className="font-mono">URL: {server.url || 'N/A'}</span></div>
+                              <div>
+                                <span className="font-mono">Type: SSE</span>
+                              </div>
+                              <div>
+                                <span className="font-mono">URL: {server.url || 'N/A'}</span>
+                              </div>
                             </>
                           ) : server.transport === 'streamableHttp' ? (
                             <>
-                              <div><span className="font-mono">Type: Streamable HTTP</span></div>
-                              <div><span className="font-mono">URL: {server.url || 'N/A'}</span></div>
+                              <div>
+                                <span className="font-mono">Type: Streamable HTTP</span>
+                              </div>
+                              <div>
+                                <span className="font-mono">URL: {server.url || 'N/A'}</span>
+                              </div>
                             </>
                           ) : (
                             <>
-                              <div><span className="font-mono">Type: Stdio</span></div>
-                              <div><span className="font-mono">Command: {server.command || 'N/A'}</span></div>
+                              <div>
+                                <span className="font-mono">Type: Stdio</span>
+                              </div>
+                              <div>
+                                <span className="font-mono">
+                                  Command: {server.command || 'N/A'}
+                                </span>
+                              </div>
                               {server.args && server.args.length > 0 && (
-                                <div><span className="font-mono">Args: {server.args.join(' ')}</span></div>
+                                <div>
+                                  <span className="font-mono">Args: {server.args.join(' ')}</span>
+                                </div>
                               )}
                             </>
                           )}
@@ -305,7 +354,12 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setViewingLogsForServer({ id: server.id, transport: server.transport })}
+                            onClick={() =>
+                              setViewingLogsForServer({
+                                id: server.id,
+                                transport: server.transport,
+                              })
+                            }
                             disabled={actionInProgress === server.id}
                           >
                             Logs
@@ -320,27 +374,25 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                           >
                             {actionInProgress === server.id ? 'Disconnecting...' : 'Disconnect'}
                           </Button>
+                        ) : authRequiredServers[server.id] ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAuthorizeServer(server.id)}
+                            disabled={actionInProgress === server.id}
+                            className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                          >
+                            {actionInProgress === server.id ? 'Authorizing...' : 'Authorize'}
+                          </Button>
                         ) : (
-                          authRequiredServers[server.id] ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAuthorizeServer(server.id)}
-                              disabled={actionInProgress === server.id}
-                              className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-                            >
-                              {actionInProgress === server.id ? 'Authorizing...' : 'Authorize'}
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleReconnect(server.id)}
-                              disabled={actionInProgress === server.id}
-                            >
-                              {actionInProgress === server.id ? 'Connecting...' : 'Reconnect'}
-                            </Button>
-                          )
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleReconnect(server.id)}
+                            disabled={actionInProgress === server.id}
+                          >
+                            {actionInProgress === server.id ? 'Connecting...' : 'Reconnect'}
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -348,19 +400,21 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                 </CardContent>
               </Card>
               <p className="text-xs text-muted-foreground">
-                Toggle auto-start to control which servers connect automatically when the application launches.
-                You can also manage server configurations in settings.
+                Toggle auto-start to control which servers connect automatically when the
+                application launches. You can also manage server configurations in settings.
               </p>
             </div>
           )}
-        
+
           {/* Available tools section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Available Tools by Server</h3>
             {Object.keys(toolsByServer).length === 0 ? (
               <Card>
                 <CardContent className="text-center py-8">
-                  <p className="text-muted-foreground">No tools available. All configured servers are disconnected.</p>
+                  <p className="text-muted-foreground">
+                    No tools available. All configured servers are disconnected.
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -385,11 +439,11 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                         </Button>
                       )}
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-3 pt-2">
                       {serverTools.map((tool) => (
                         <Card key={tool.name} className="overflow-hidden">
-                          <div 
+                          <div
                             className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
                             onClick={() => toggleToolExpand(tool.name)}
                           >
@@ -406,14 +460,16 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
                               </Button>
                             </div>
                           </div>
-                          
+
                           {expandedTools[tool.name] && (
                             <div className="border-t p-4 space-y-4 bg-muted/50">
                               <div>
                                 <h5 className="font-medium text-sm mb-2">Full Description:</h5>
-                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{tool.description}</p>
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                  {tool.description}
+                                </p>
                               </div>
-                              
+
                               <div>
                                 <h5 className="font-medium text-sm mb-2">Input Schema:</h5>
                                 <pre className="bg-background p-3 rounded-md overflow-x-auto text-xs border">
@@ -431,7 +487,7 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
             )}
           </div>
         </CardContent>
-        
+
         <div className="flex items-center justify-end gap-2 p-6 pt-0">
           <Button onClick={onClose} className="w-full">
             Close
@@ -439,16 +495,15 @@ function ToolsPanel({ tools = [], onClose, onDisconnectServer, onReconnectServer
         </div>
 
         {viewingLogsForServer && (
-          <LogViewerModal 
-            serverId={viewingLogsForServer.id} 
+          <LogViewerModal
+            serverId={viewingLogsForServer.id}
             transportType={viewingLogsForServer.transport}
             onClose={() => setViewingLogsForServer(null)}
           />
         )}
-
       </Card>
     </div>
   );
 }
 
-export default ToolsPanel; 
+export default ToolsPanel;

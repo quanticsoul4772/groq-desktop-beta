@@ -9,7 +9,6 @@
  * - Phase 2: Coverage Enforcement (90% threshold validation)
  */
 
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -147,13 +146,13 @@ class PipelineParity {
 
   async runLinting() {
     const maxWarnings = this.config.eslintConfig?.maxWarnings ?? 0;
-    
+
     try {
       // Run ESLint with progress tracking
       await ProgressTracker.execWithProgress(`npx eslint . --max-warnings ${maxWarnings}`, {
         name: 'ESLint Check',
         verbose: this.options.verbose,
-        estimatedDuration: 10 // ESLint usually takes 5-15 seconds
+        estimatedDuration: 10, // ESLint usually takes 5-15 seconds
       });
 
       this.results.linting.status = 'success';
@@ -175,7 +174,7 @@ class PipelineParity {
       await ProgressTracker.execWithProgress('pnpm format:check', {
         name: 'Prettier Check',
         verbose: this.options.verbose,
-        estimatedDuration: 5
+        estimatedDuration: 5,
       });
       this.results.linting.details.push('✅ Prettier: All files formatted correctly');
       this.log('Prettier check passed', 'success');
@@ -192,7 +191,7 @@ class PipelineParity {
       await ProgressTracker.execWithProgress('node scripts/validate-test-imports.js', {
         name: 'Import Validation',
         verbose: this.options.verbose,
-        estimatedDuration: 3
+        estimatedDuration: 3,
       });
 
       this.results.imports.status = 'success';
@@ -212,7 +211,7 @@ class PipelineParity {
       const result = await ProgressTracker.execWithProgress('pnpm test:ci', {
         name: 'Jest Test Suite',
         verbose: this.options.verbose,
-        estimatedDuration: 25 // Tests usually take 15-35 seconds
+        estimatedDuration: 25, // Tests usually take 15-35 seconds
       });
 
       // Parse test results from output
@@ -241,26 +240,26 @@ class PipelineParity {
 
     if (!coverageExists) {
       const autoRun = this.options.autoRunTests ?? this.config.autoRunTests ?? true;
-      
+
       if (autoRun) {
         this.log('Coverage report not found. Running tests to generate coverage...', 'warning');
         await this.runTests();
       } else {
         throw new Error(
           'Coverage report not found and auto-run tests is disabled. ' +
-          'Please run tests first with "pnpm test:ci" or enable auto-run tests.'
+            'Please run tests first with "pnpm test:ci" or enable auto-run tests.'
         );
       }
     } else {
       // Check if coverage report is fresh (generated after any test file changes)
       const coverageStats = fs.statSync(coveragePath);
       const testFiles = this.findTestFiles();
-      
+
       if (testFiles.length > 0) {
         const newestTestFile = testFiles
-          .map(file => ({ file, mtime: fs.statSync(file).mtime }))
+          .map((file) => ({ file, mtime: fs.statSync(file).mtime }))
           .sort((a, b) => b.mtime - a.mtime)[0];
-        
+
         if (newestTestFile.mtime > coverageStats.mtime) {
           this.log('Test files are newer than coverage report. Re-running tests...', 'warning');
           await this.runTests();
@@ -303,7 +302,7 @@ class PipelineParity {
       if (!fs.existsSync(coveragePath)) {
         throw new Error(
           'Coverage report not found. This indicates tests were not run successfully or ' +
-          'coverage collection failed. Please check test execution logs.'
+            'coverage collection failed. Please check test execution logs.'
         );
       }
 
@@ -356,10 +355,12 @@ class PipelineParity {
 
   generateReport() {
     const duration = ((Date.now() - this.startTime) / 1000).toFixed(1);
-    
+
     // Only check status of enabled checks
-    const enabledChecks = Object.keys(this.config.checks).filter(check => this.config.checks[check]);
-    const enabledResults = enabledChecks.map(check => this.results[check]).filter(Boolean);
+    const enabledChecks = Object.keys(this.config.checks).filter(
+      (check) => this.config.checks[check]
+    );
+    const enabledResults = enabledChecks.map((check) => this.results[check]).filter(Boolean);
     const allPassed = enabledResults.every((r) => r.status === 'success');
 
     console.log('');

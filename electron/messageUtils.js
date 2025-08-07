@@ -27,7 +27,7 @@ function pruneMessageHistory(messages, model, modelContextSizes) {
 
   prunedMessages.forEach((msg, index) => {
     if (msg.role === 'user' && Array.isArray(msg.content)) {
-      const imageParts = msg.content.filter(part => part.type === 'image_url');
+      const imageParts = msg.content.filter((part) => part.type === 'image_url');
       if (imageParts.length > 0) {
         totalImageCount += imageParts.length;
         lastUserMessageWithImagesIndex = index; // Keep track of the latest one
@@ -37,22 +37,28 @@ function pruneMessageHistory(messages, model, modelContextSizes) {
 
   // If total images exceed 5, keep only images from the last user message that had them
   if (totalImageCount > 5 && lastUserMessageWithImagesIndex !== -1) {
-    console.log(`Total image count (${totalImageCount}) exceeds 5. Keeping images only from the last user message (index ${lastUserMessageWithImagesIndex}).`);
+    console.log(
+      `Total image count (${totalImageCount}) exceeds 5. Keeping images only from the last user message (index ${lastUserMessageWithImagesIndex}).`
+    );
     prunedMessages = prunedMessages.map((msg, index) => {
-      if (msg.role === 'user' && Array.isArray(msg.content) && index !== lastUserMessageWithImagesIndex) {
+      if (
+        msg.role === 'user' &&
+        Array.isArray(msg.content) &&
+        index !== lastUserMessageWithImagesIndex
+      ) {
         // Filter out image_url parts from older user messages
-        const textParts = msg.content.filter(part => part.type === 'text');
+        const textParts = msg.content.filter((part) => part.type === 'text');
 
         // If only text parts remain, keep the message with only text parts
         if (textParts.length > 0) {
-            // If there was only one text part originally, simplify back to string content? No, keep array structure.
-            // console.log(`Removing images from message ${index}, keeping text parts.`);
-             return { ...msg, content: textParts };
+          // If there was only one text part originally, simplify back to string content? No, keep array structure.
+          // console.log(`Removing images from message ${index}, keeping text parts.`);
+          return { ...msg, content: textParts };
         } else {
-            // If the message becomes empty after removing images, filter it out later?
-            // For now, let's keep it but mark content as empty text array
-            // console.log(`Message ${index} becomes empty after image removal.`);
-            return { ...msg, content: [{ type: 'text', text: '' }] }; // Represent as empty text
+          // If the message becomes empty after removing images, filter it out later?
+          // For now, let's keep it but mark content as empty text array
+          // console.log(`Message ${index} becomes empty after image removal.`);
+          return { ...msg, content: [{ type: 'text', text: '' }] }; // Represent as empty text
         }
       }
       return msg;
@@ -67,11 +73,15 @@ function pruneMessageHistory(messages, model, modelContextSizes) {
 
   // If we're already under the target, no text-based pruning needed
   if (currentTotalTokens <= targetTokenCount) {
-    console.log(`Token count (${currentTotalTokens}) is within target (${targetTokenCount}) after image pruning. No text pruning needed.`);
+    console.log(
+      `Token count (${currentTotalTokens}) is within target (${targetTokenCount}) after image pruning. No text pruning needed.`
+    );
     return prunedMessages;
   }
 
-  console.log(`Token count (${currentTotalTokens}) exceeds target (${targetTokenCount}). Starting text pruning...`);
+  console.log(
+    `Token count (${currentTotalTokens}) exceeds target (${targetTokenCount}). Starting text pruning...`
+  );
 
   // Keep track of text-based pruned messages
   let messagesPrunedCount = 0;
@@ -93,7 +103,9 @@ function pruneMessageHistory(messages, model, modelContextSizes) {
   }
 
   if (messagesPrunedCount > 0) {
-    console.log(`Pruned ${messagesPrunedCount} messages based on token count. Final tokens: ${currentTotalTokens} (target: ${targetTokenCount})`);
+    console.log(
+      `Pruned ${messagesPrunedCount} messages based on token count. Final tokens: ${currentTotalTokens} (target: ${targetTokenCount})`
+    );
   }
 
   return prunedMessages;
@@ -116,8 +128,8 @@ function estimateTokenCount(message) {
   } else if (Array.isArray(message.content)) {
     // Sum text content length from text parts
     textContent = message.content
-      .filter(part => part.type === 'text')
-      .map(part => part.text)
+      .filter((part) => part.type === 'text')
+      .map((part) => part.text)
       .join('\n'); // Join text parts for length calculation
   }
   // NOTE: Ignoring non-text/image parts if the array format is extended.
@@ -130,25 +142,26 @@ function estimateTokenCount(message) {
 
   // Account for tool calls in assistant messages
   if (message.role === 'assistant' && message.tool_calls && Array.isArray(message.tool_calls)) {
-    message.tool_calls.forEach(toolCall => {
+    message.tool_calls.forEach((toolCall) => {
       // Estimate tokens for the JSON representation of the tool call
       try {
-          const serializedToolCall = JSON.stringify(toolCall);
-          tokenCount += Math.ceil(serializedToolCall.length / 4);
+        const serializedToolCall = JSON.stringify(toolCall);
+        tokenCount += Math.ceil(serializedToolCall.length / 4);
       } catch (e) {
-          console.warn("Error serializing tool call for token estimation:", e);
-          tokenCount += 50; // Add arbitrary penalty if serialization fails
+        console.warn('Error serializing tool call for token estimation:', e);
+        tokenCount += 50; // Add arbitrary penalty if serialization fails
       }
     });
   }
 
   // Account for tool results in tool messages
   if (message.role === 'tool') {
-      // Estimate tokens for the (potentially stringified) content of the tool result
-      const contentString = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
-      tokenCount += Math.ceil(contentString.length / 4);
-      // Add a small overhead for the tool role/id itself
-      tokenCount += 10; // Rough estimate for tool_call_id, role etc.
+    // Estimate tokens for the (potentially stringified) content of the tool result
+    const contentString =
+      typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
+    tokenCount += Math.ceil(contentString.length / 4);
+    // Add a small overhead for the tool role/id itself
+    tokenCount += 10; // Rough estimate for tool_call_id, role etc.
   }
 
   // Add a small base token count per message for metadata (role, etc.)
@@ -161,6 +174,6 @@ function estimateTokenCount(message) {
 }
 
 module.exports = {
-    pruneMessageHistory,
-    estimateTokenCount
-}; 
+  pruneMessageHistory,
+  estimateTokenCount,
+};

@@ -3,27 +3,27 @@ const authManager = require('../../../electron/authManager');
 // Mock dependencies
 jest.mock('electron', () => ({
   shell: {
-    openExternal: jest.fn()
-  }
+    openExternal: jest.fn(),
+  },
 }));
 
 jest.mock('@modelcontextprotocol/sdk/client/auth.js', () => ({
   discoverOAuthMetadata: jest.fn(),
   startAuthorization: jest.fn(),
   exchangeAuthorization: jest.fn(),
-  registerClient: jest.fn()
+  registerClient: jest.fn(),
 }));
 
 jest.mock('crypto', () => ({
-  randomBytes: jest.fn(() => ({ toString: () => 'mock-random-string' }))
+  randomBytes: jest.fn(() => ({ toString: () => 'mock-random-string' })),
 }));
 
 jest.mock('http', () => ({
   createServer: jest.fn(() => ({
     listen: jest.fn((port, callback) => callback()),
     close: jest.fn((callback) => callback && callback()),
-    on: jest.fn()
-  }))
+    on: jest.fn(),
+  })),
 }));
 
 jest.mock('net', () => ({
@@ -33,8 +33,8 @@ jest.mock('net', () => ({
       setTimeout(() => callback(), 0);
     }),
     close: jest.fn(),
-    on: jest.fn()
-  }))
+    on: jest.fn(),
+  })),
 }));
 
 describe('AuthManager', () => {
@@ -55,13 +55,13 @@ describe('AuthManager', () => {
   test('startOAuthFlow initiates OAuth process', async () => {
     const mockMetadata = {
       authorization_endpoint: 'https://auth.example.com/oauth/authorize',
-      token_endpoint: 'https://auth.example.com/oauth/token'
+      token_endpoint: 'https://auth.example.com/oauth/token',
     };
 
     const mockAuth = require('@modelcontextprotocol/sdk/client/auth.js');
     mockAuth.discoverOAuthMetadata.mockResolvedValue(mockMetadata);
     mockAuth.startAuthorization.mockResolvedValue({
-      authorizationUrl: 'https://auth.example.com/oauth/authorize?client_id=test'
+      authorizationUrl: 'https://auth.example.com/oauth/authorize?client_id=test',
     });
 
     const serverUrl = 'https://api.example.com';
@@ -77,16 +77,15 @@ describe('AuthManager', () => {
     mockAuth.discoverOAuthMetadata.mockRejectedValue(new Error('Network error'));
 
     const serverUrl = 'https://api.example.com';
-    
-    await expect(authManager.startOAuthFlow(serverUrl))
-      .rejects.toThrow('Network error');
+
+    await expect(authManager.startOAuthFlow(serverUrl)).rejects.toThrow('Network error');
   });
 
   test('getStoredTokens retrieves tokens from storage', async () => {
     const mockTokens = {
       access_token: 'test-access-token',
       refresh_token: 'test-refresh-token',
-      expires_in: 3600
+      expires_in: 3600,
     };
 
     // Mock storage.get to return tokens
@@ -113,7 +112,7 @@ describe('AuthManager', () => {
 
   test('setMcpRetryFunc sets retry function', () => {
     const mockRetryFunc = jest.fn();
-    
+
     expect(() => {
       authManager.setMcpRetryFunc(mockRetryFunc);
     }).not.toThrow();
@@ -127,7 +126,7 @@ describe('AuthManager', () => {
         setTimeout(() => callback(), 0);
       }),
       close: jest.fn(),
-      on: jest.fn()
+      on: jest.fn(),
     };
     net.createServer.mockReturnValue(mockServer);
 
@@ -135,7 +134,7 @@ describe('AuthManager', () => {
     const mockAuth = require('@modelcontextprotocol/sdk/client/auth.js');
     mockAuth.discoverOAuthMetadata.mockResolvedValue({
       authorization_endpoint: 'https://auth.example.com/oauth/authorize',
-      token_endpoint: 'https://auth.example.com/oauth/token'
+      token_endpoint: 'https://auth.example.com/oauth/token',
     });
 
     const serverUrl = 'https://api.example.com';
@@ -147,35 +146,34 @@ describe('AuthManager', () => {
   test('handles callback server errors', async () => {
     const http = require('http');
     const mockServer = {
-      listen: jest.fn((port, callback) => {
+      listen: jest.fn((_port, _callback) => {
         // Simulate server error
         const error = new Error('Address already in use');
         error.code = 'EADDRINUSE';
         throw error;
       }),
       close: jest.fn(),
-      on: jest.fn()
+      on: jest.fn(),
     };
     http.createServer.mockReturnValue(mockServer);
 
     const mockAuth = require('@modelcontextprotocol/sdk/client/auth.js');
     mockAuth.discoverOAuthMetadata.mockResolvedValue({
       authorization_endpoint: 'https://auth.example.com/oauth/authorize',
-      token_endpoint: 'https://auth.example.com/oauth/token'
+      token_endpoint: 'https://auth.example.com/oauth/token',
     });
 
     const serverUrl = 'https://api.example.com';
-    
+
     // Should handle server creation errors gracefully
-    await expect(authManager.startOAuthFlow(serverUrl))
-      .rejects.toThrow();
+    await expect(authManager.startOAuthFlow(serverUrl)).rejects.toThrow();
   });
 
   test('handleOAuthCallback processes authorization code', async () => {
     const mockTokens = {
       access_token: 'new-access-token',
       refresh_token: 'new-refresh-token',
-      expires_in: 3600
+      expires_in: 3600,
     };
 
     const mockAuth = require('@modelcontextprotocol/sdk/client/auth.js');
@@ -196,10 +194,9 @@ describe('AuthManager', () => {
   test('validates state parameter in OAuth callback', async () => {
     const authCode = 'test-auth-code';
     const invalidState = 'invalid-state';
-    
+
     // Should reject invalid state
-    await expect(authManager.handleOAuthCallback(authCode, invalidState))
-      .rejects.toThrow();
+    await expect(authManager.handleOAuthCallback(authCode, invalidState)).rejects.toThrow();
   });
 
   test('handles token exchange errors', async () => {
@@ -208,9 +205,10 @@ describe('AuthManager', () => {
 
     const authCode = 'invalid-code';
     const state = 'valid-state';
-    
-    await expect(authManager.handleOAuthCallback(authCode, state))
-      .rejects.toThrow('Invalid authorization code');
+
+    await expect(authManager.handleOAuthCallback(authCode, state)).rejects.toThrow(
+      'Invalid authorization code'
+    );
   });
 
   test('cleans up callback server after use', async () => {
@@ -218,14 +216,14 @@ describe('AuthManager', () => {
     const mockServer = {
       listen: jest.fn((port, callback) => callback()),
       close: jest.fn((callback) => callback && callback()),
-      on: jest.fn()
+      on: jest.fn(),
     };
     http.createServer.mockReturnValue(mockServer);
 
     const mockAuth = require('@modelcontextprotocol/sdk/client/auth.js');
     mockAuth.discoverOAuthMetadata.mockResolvedValue({
       authorization_endpoint: 'https://auth.example.com/oauth/authorize',
-      token_endpoint: 'https://auth.example.com/oauth/token'
+      token_endpoint: 'https://auth.example.com/oauth/token',
     });
 
     const serverUrl = 'https://api.example.com';

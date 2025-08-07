@@ -5,6 +5,7 @@
 Groq Desktop features MCP server support for all function calling capable models hosted on Groq. Now available for Windows, macOS, and Linux!
 
 > **Note for macOS Users**: After installing on macOS, you may need to run this command to open the app:
+>
 > ```sh
 > xattr -c /Applications/Groq\ Desktop.app
 > ```
@@ -20,11 +21,10 @@ Groq Desktop features MCP server support for all function calling capable models
 - [Configuration](#configuration)
 - [Testing](#testing)
 - [Contributing](#contributing)
-<img width="450" alt="Screenshot 2025-08-05 at 11 32 04 AM" src="https://github.com/user-attachments/assets/d4fd9224-8186-4117-bdeb-b477f8a42d49" />
-<br>
-<br>
-<img width="450" alt="Screenshot 2025-08-05 at 11 28 49 AM" src="https://github.com/user-attachments/assets/ced9c517-74f0-46b0-8e91-40ebc88adc3a" />
-
+  <img width="450" alt="Screenshot 2025-08-05 at 11 32 04 AM" src="https://github.com/user-attachments/assets/d4fd9224-8186-4117-bdeb-b477f8a42d49" />
+  <br>
+  <br>
+  <img width="450" alt="Screenshot 2025-08-05 at 11 28 49 AM" src="https://github.com/user-attachments/assets/ced9c517-74f0-46b0-8e91-40ebc88adc3a" />
 
 ## Unofficial Homebrew Installation (macOS)
 
@@ -67,19 +67,23 @@ xattr -c /Applications/Groq\ Desktop.app
 If you encounter an error like "Electron failed to install correctly" when running `pnpm dev`, this is likely because pnpm blocked the build scripts for security reasons. To fix this:
 
 1. Remove the corrupted installation:
+
    ```bash
    rm -rf node_modules
    ```
 
 2. Reinstall dependencies:
+
    ```bash
    pnpm install
    ```
 
 3. Approve the build scripts when prompted (or run manually):
+
    ```bash
    pnpm approve-builds
    ```
+
    Select `electron` and `esbuild` when prompted to allow their post-install scripts to run.
 
 4. Try running the dev server again:
@@ -156,8 +160,9 @@ pnpm test:ci
 #### Coverage Requirements
 
 All new code must maintain:
+
 - **Lines**: ≥90%
-- **Branches**: ≥90% 
+- **Branches**: ≥90%
 - **Functions**: ≥90%
 - **Statements**: ≥90%
 
@@ -192,6 +197,7 @@ pnpm test:paths
 ```
 
 The platform testing scripts check:
+
 - Platform detection
 - Script file resolution
 - Environment variable handling
@@ -250,12 +256,14 @@ pnpm test:ci
 ### Coverage Requirements
 
 All code must maintain at least 90% test coverage. The build will fail if coverage falls below:
+
 - Lines: 90%
 - Branches: 90%
 - Functions: 90%
 - Statements: 90%
 
 View the coverage report after running tests:
+
 ```bash
 pnpm test:coverage
 open coverage/index.html
@@ -264,6 +272,7 @@ open coverage/index.html
 ### Writing Tests
 
 When contributing new features or fixes:
+
 1. Write tests for all new code
 2. Ensure existing tests still pass
 3. Update tests when modifying existing functionality
@@ -272,6 +281,7 @@ When contributing new features or fixes:
 ### Continuous Integration
 
 Tests are automatically run on all pull requests and pushes to main. The CI pipeline:
+
 - Runs tests across multiple OS (Ubuntu, macOS, Windows)
 - Checks coverage thresholds
 - Reports coverage metrics on PRs
@@ -282,7 +292,8 @@ Tests are automatically run on all pull requests and pushes to main. The CI pipe
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for detailed setup instructions, development workflows, and coding conventions.
 
 Quick start for contributors:
+
 1. Clone the repository
 2. Install dependencies: `pnpm install`
 3. Set up your environment: `cp env.example .env` (add your Groq API key)
-4. Start development: `pnpm dev` 
+4. Start development: `pnpm dev`

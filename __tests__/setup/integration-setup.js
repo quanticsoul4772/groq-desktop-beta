@@ -17,7 +17,7 @@ beforeEach(() => {
 afterEach(() => {
   // Reset all mocks after each test for full isolation
   jest.resetAllMocks();
-  // Restore all mocked modules 
+  // Restore all mocked modules
   jest.restoreAllMocks();
   // Clear mock metrics
   global.mockMetrics.clear();
@@ -35,21 +35,20 @@ afterAll(() => {
 
 // Mock Groq API
 const mockGroqAPI = () => {
-  return nock('https://api.groq.com')
-    .defaultReplyHeaders({
-      'access-control-allow-origin': '*',
-      'access-control-allow-credentials': 'true'
-    });
+  return nock('https://api.groq.com').defaultReplyHeaders({
+    'access-control-allow-origin': '*',
+    'access-control-allow-credentials': 'true',
+  });
 };
 
 // Mock successful Groq chat completion
-const mockGroqChatSuccess = (response = {
-  choices: [{ message: { content: 'Mock response' } }],
-  usage: { total_tokens: 10 }
-}) => {
-  return mockGroqAPI()
-    .post('/openai/v1/chat/completions')
-    .reply(200, response);
+const mockGroqChatSuccess = (
+  response = {
+    choices: [{ message: { content: 'Mock response' } }],
+    usage: { total_tokens: 10 },
+  }
+) => {
+  return mockGroqAPI().post('/openai/v1/chat/completions').reply(200, response);
 };
 
 // Mock Groq API errors
@@ -63,11 +62,11 @@ const mockGroqError = (statusCode = 500, error = 'Internal Server Error') => {
 const mockGroqRateLimit = () => {
   return mockGroqAPI()
     .post('/openai/v1/chat/completions')
-    .reply(429, { 
-      error: { 
+    .reply(429, {
+      error: {
         message: 'Rate limit exceeded',
-        type: 'rate_limit_error'
-      } 
+        type: 'rate_limit_error',
+      },
     });
 };
 
@@ -83,10 +82,10 @@ const mockGroqTimeout = () => {
 const mockCircuitBreakerSequence = () => {
   return [
     mockGroqError(503, 'Service Unavailable'), // First failure
-    mockGroqError(503, 'Service Unavailable'), // Second failure  
+    mockGroqError(503, 'Service Unavailable'), // Second failure
     mockGroqError(503, 'Service Unavailable'), // Third failure - should open circuit
     mockGroqChatSuccess(), // This should be blocked by circuit breaker
-    mockGroqChatSuccess()  // After cooldown, should work again
+    mockGroqChatSuccess(), // After cooldown, should work again
   ];
 };
 
@@ -103,28 +102,28 @@ global.mockMetrics = {
   counters: new Map(),
   gauges: new Map(),
   histograms: new Map(),
-  
-  increment: function(name, labels = {}) {
+
+  increment: function (name, labels = {}) {
     const key = `${name}_${JSON.stringify(labels)}`;
     this.counters.set(key, (this.counters.get(key) || 0) + 1);
   },
-  
-  set: function(name, value, labels = {}) {
+
+  set: function (name, value, labels = {}) {
     const key = `${name}_${JSON.stringify(labels)}`;
     this.gauges.set(key, value);
   },
-  
-  observe: function(name, value, labels = {}) {
+
+  observe: function (name, value, labels = {}) {
     const key = `${name}_${JSON.stringify(labels)}`;
     if (!this.histograms.has(key)) {
       this.histograms.set(key, []);
     }
     this.histograms.get(key).push(value);
   },
-  
-  clear: function() {
+
+  clear: function () {
     this.counters.clear();
     this.gauges.clear();
     this.histograms.clear();
-  }
+  },
 };
