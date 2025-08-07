@@ -32,7 +32,8 @@
     "benchmark:jest": "node __tests__/benchmarks/benchmark-jest.js",
     "format": "prettier --write \"**/*.{js,jsx,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,json,md,css}\"",
-    "lint": "npx eslint . --max-warnings 0"
+    "lint": "npx eslint . --max-warnings 0",
+    "prepare": "husky"
   },
   "keywords": [
     "electron",
@@ -84,8 +85,11 @@
     "eslint": "^9.25.1",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.0.5",
+    "jsonlint": "^1.6.3",
+    "lint-staged": "^16.1.4",
     "nock": "^14.0.8",
     "postcss": "^8.4.31",
     "prettier": "^3.6.0",
@@ -130,6 +134,9 @@
       "category": "Development",
       "icon": "public/icon.png"
     }
+  },
+  "lint-staged": {
+    "*.json": "jsonlint --quiet"
   },
   "engines": {
     "node": ">=18.0.0"
