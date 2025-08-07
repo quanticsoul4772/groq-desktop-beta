@@ -1,14 +1,6 @@
 import '@testing-library/jest-dom';
 
-// Mock Next.js themes
-jest.mock('next-themes', () => ({
-  useTheme: () => ({
-    theme: 'light',
-    setTheme: jest.fn(),
-    resolvedTheme: 'light'
-  }),
-  ThemeProvider: ({ children }) => children
-}));
+// Note: This project uses Vite, not Next.js, so no next-themes needed
 
 // Mock React Router
 jest.mock('react-router-dom', () => ({
@@ -17,7 +9,7 @@ jest.mock('react-router-dom', () => ({
   useLocation: () => ({ pathname: '/' }),
   BrowserRouter: ({ children }) => children,
   Routes: ({ children }) => children,
-  Route: ({ children }) => children
+  Route: ({ children }) => children,
 }));
 
 // Mock Electron IPC
@@ -29,7 +21,7 @@ global.electronAPI = {
   getSettings: jest.fn(() => Promise.resolve({})),
   setSettings: jest.fn(),
   openExternal: jest.fn(),
-  showContextMenu: jest.fn()
+  showContextMenu: jest.fn(),
 };
 
 // Mock CSS imports
@@ -38,7 +30,7 @@ jest.mock('../../src/renderer/index.css', () => ({}));
 // Setup DOM environment
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,

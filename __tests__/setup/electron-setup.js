@@ -9,7 +9,7 @@ jest.mock('electron', () => ({
     whenReady: () => Promise.resolve(),
     on: jest.fn(),
     once: jest.fn(),
-    removeListener: jest.fn()
+    removeListener: jest.fn(),
   },
   BrowserWindow: jest.fn().mockImplementation(() => ({
     loadURL: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock('electron', () => ({
     webContents: {
       send: jest.fn(),
       on: jest.fn(),
-      openDevTools: jest.fn()
+      openDevTools: jest.fn(),
     },
     show: jest.fn(),
     hide: jest.fn(),
@@ -28,30 +28,30 @@ jest.mock('electron', () => ({
     focus: jest.fn(),
     isFocused: () => true,
     isVisible: () => true,
-    isDestroyed: () => false
+    isDestroyed: () => false,
   })),
   ipcMain: {
     on: jest.fn(),
     once: jest.fn(),
     handle: jest.fn(),
     removeListener: jest.fn(),
-    removeAllListeners: jest.fn()
+    removeAllListeners: jest.fn(),
   },
   shell: {
-    openExternal: jest.fn()
+    openExternal: jest.fn(),
   },
   Menu: {
     setApplicationMenu: jest.fn(),
-    buildFromTemplate: jest.fn()
+    buildFromTemplate: jest.fn(),
   },
   dialog: {
     showMessageBox: jest.fn(),
     showOpenDialog: jest.fn(),
-    showSaveDialog: jest.fn()
+    showSaveDialog: jest.fn(),
   },
   contextBridge: {
-    exposeInMainWorld: jest.fn()
-  }
+    exposeInMainWorld: jest.fn(),
+  },
 }));
 
 // Mock electron-json-storage
@@ -61,7 +61,7 @@ jest.mock('electron-json-storage', () => ({
   has: jest.fn((key, callback) => callback(null, false)),
   keys: jest.fn((callback) => callback(null, [])),
   remove: jest.fn((key, callback) => callback(null)),
-  clear: jest.fn((callback) => callback(null))
+  clear: jest.fn((callback) => callback(null)),
 }));
 
 // Mock Node.js modules
@@ -74,24 +74,28 @@ jest.mock('fs', () => ({
     readFile: jest.fn(() => Promise.resolve('{}')),
     writeFile: jest.fn(() => Promise.resolve()),
     mkdir: jest.fn(() => Promise.resolve()),
-    access: jest.fn(() => Promise.resolve())
-  }
+    access: jest.fn(() => Promise.resolve()),
+  },
 }));
 
 jest.mock('path', () => ({
   join: jest.fn((...args) => args.join('/')),
   resolve: jest.fn((...args) => '/' + args.join('/')),
-  dirname: jest.fn(path => path.split('/').slice(0, -1).join('/')),
-  basename: jest.fn(path => path.split('/').pop()),
-  extname: jest.fn(path => {
+  dirname: jest.fn((path) => path.split('/').slice(0, -1).join('/')),
+  basename: jest.fn((path) => path.split('/').pop()),
+  extname: jest.fn((path) => {
     const parts = path.split('.');
     return parts.length > 1 ? '.' + parts.pop() : '';
   }),
-  sep: '/'
+  sep: '/',
 }));
 
-// Mock process
-process.platform = 'linux';
+// Mock process (use defineProperty for read-only properties)
+Object.defineProperty(process, 'platform', {
+  value: 'linux',
+  writable: true,
+  configurable: true,
+});
 process.env.NODE_ENV = 'test';
 
 // Ensure full mock isolation between tests
