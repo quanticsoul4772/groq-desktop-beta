@@ -17,11 +17,11 @@ Brief description of the changes in this PR.
 
 ## Testing
 
-- [ ] **All tests pass** (`pnpm test:ci`)
-- [ ] **Coverage remains ≥90%** (`pnpm test:coverage`)
-- [ ] **New features have unit tests** (in `__tests__/unit/`)
-- [ ] **API changes have integration tests** (in `__tests__/integration/`)
-- [ ] Legacy platform tests pass (`pnpm test:platforms`)
+- [ ] **All tests pass** (verify test command in package.json)
+- [ ] **Coverage remains at target threshold** (check coverage config)
+- [ ] **New features have unit tests** (check test directory structure)
+- [ ] **API changes have integration tests** (check test directory structure)
+- [ ] Legacy platform tests pass (if applicable)
 - [ ] Changes tested on at least one platform
 
 ## Code Quality
