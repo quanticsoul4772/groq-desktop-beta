@@ -1,0 +1,20 @@
+{
+  "Demo Operation": [
+    {
+      "duration": 4,
+      "timestamp": "2025-08-07T06:05:48.470Z"
+    }
+  ],
+  "CI-Style Operation": [
+    {
+      "duration": 3,
+      "timestamp": "2025-08-07T06:05:51.973Z"
+    }
+  ],
+  "Repeated Operation": [
+    {
+      "duration": 2,
+      "timestamp": "2025-08-07T06:05:53.974Z"
+    }
+  ]
+}
