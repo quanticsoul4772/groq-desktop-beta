@@ -1,0 +1,67 @@
+{
+  "nodeVersions": ["18", "20"],
+  "coverageThresholds": {
+    "lines": 90,
+    "branches": 90,
+    "functions": 90,
+    "statements": 90
+  },
+  "checks": {
+    "eslint": true,
+    "prettier": true,
+    "imports": true,
+    "tests": false,
+    "coverage": false,
+    "build": false
+  },
+  "eslintConfig": {
+    "maxWarnings": 0,
+    "format": "compact"
+  },
+  "prettierConfig": {
+    "checkFormatting": true
+  },
+  "testConfig": {
+    "ciMode": true,
+    "watchAll": false,
+    "passWithNoTests": true,
+    "maxWorkers": 2,
+    "forceExit": true
+  },
+  "environments": ["local"],
+  "reportFormat": "github",
+  "cacheDirectory": ".pipeline-parity",
+  "modes": {
+    "quick": {
+      "checks": {
+        "eslint": true,
+        "prettier": false,
+        "imports": true,
+        "tests": true,
+        "coverage": false,
+        "build": false
+      }
+    },
+    "full": {
+      "checks": {
+        "eslint": true,
+        "prettier": true,
+        "imports": true,
+        "tests": true,
+        "coverage": true,
+        "build": true
+      },
+      "multiNode": true,
+      "platforms": ["ubuntu-latest", "macos-latest", "windows-latest"]
+    }
+  },
+  "output": {
+    "console": true,
+    "file": true,
+    "github": true
+  },
+  "git": {
+    "preCommitHook": false,
+    "prePushHook": false
+  }
+}

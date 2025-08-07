@@ -1,22 +1,22 @@
-import { 
-  cn, 
-  formatTimestamp, 
-  truncateText, 
-  isValidUrl, 
-  sanitizeHtml, 
+import {
+  cn,
+  formatTimestamp,
+  truncateText,
+  isValidUrl,
+  sanitizeHtml,
   copyToClipboard,
   generateId,
   validateEmail,
   formatFileSize,
   debounce,
-  throttle
+  throttle,
 } from '../../../src/renderer/lib/utils';
 
 // Mock clipboard API
 Object.assign(navigator, {
   clipboard: {
-    writeText: jest.fn(() => Promise.resolve())
-  }
+    writeText: jest.fn(() => Promise.resolve()),
+  },
 });
 
 describe('Renderer Utils', () => {
@@ -32,7 +32,13 @@ describe('Renderer Utils', () => {
     });
 
     test('handles conditional classes', () => {
-      const result = cn('base-class', true && 'conditional-class', false && 'hidden-class');
+      const condition1 = true;
+      const condition2 = false;
+      const result = cn(
+        'base-class',
+        condition1 && 'conditional-class',
+        condition2 && 'hidden-class'
+      );
       expect(result).toContain('base-class');
       expect(result).toContain('conditional-class');
       expect(result).not.toContain('hidden-class');
@@ -57,21 +63,21 @@ describe('Renderer Utils', () => {
     test('formats timestamp correctly', () => {
       const timestamp = new Date('2023-12-25T10:30:00Z');
       const result = formatTimestamp(timestamp);
-      
+
       expect(result).toMatch(/\d{1,2}:\d{2}/); // Should contain time format
     });
 
     test('handles string timestamps', () => {
       const timestamp = '2023-12-25T10:30:00Z';
       const result = formatTimestamp(timestamp);
-      
+
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
 
     test('handles invalid timestamps', () => {
       const result = formatTimestamp('invalid-date');
-      
+
       expect(result).toBe('Invalid Date');
     });
 
@@ -85,7 +91,7 @@ describe('Renderer Utils', () => {
     test('truncates long text', () => {
       const longText = 'This is a very long text that should be truncated';
       const result = truncateText(longText, 20);
-      
+
       expect(result.length).toBeLessThanOrEqual(23); // 20 + '...'
       expect(result).toContain('...');
     });
@@ -93,7 +99,7 @@ describe('Renderer Utils', () => {
     test('does not truncate short text', () => {
       const shortText = 'Short text';
       const result = truncateText(shortText, 20);
-      
+
       expect(result).toBe(shortText);
       expect(result).not.toContain('...');
     });
@@ -115,10 +121,10 @@ describe('Renderer Utils', () => {
         'https://example.com',
         'http://example.com',
         'https://www.example.com/path?query=value',
-        'ftp://ftp.example.com'
+        'ftp://ftp.example.com',
       ];
 
-      validUrls.forEach(url => {
+      validUrls.forEach((url) => {
         expect(isValidUrl(url)).toBe(true);
       });
     });
@@ -130,10 +136,10 @@ describe('Renderer Utils', () => {
         '',
         null,
         undefined,
-        'javascript:alert("xss")'
+        'javascript:alert("xss")',
       ];
 
-      invalidUrls.forEach(url => {
+      invalidUrls.forEach((url) => {
         expect(isValidUrl(url)).toBe(false);
       });
     });
@@ -143,16 +149,17 @@ describe('Renderer Utils', () => {
     test('removes script tags', () => {
       const htmlWithScript = '<p>Safe content</p><script>alert("xss")</script>';
       const result = sanitizeHtml(htmlWithScript);
-      
+
       expect(result).toContain('Safe content');
       expect(result).not.toContain('<script>');
       expect(result).not.toContain('alert');
     });
 
     test('removes on* event attributes', () => {
-      const htmlWithEvents = '<div onclick="alert(\'xss\')" onmouseover="alert(\'xss\')">Content</div>';
+      const htmlWithEvents =
+        '<div onclick="alert(\'xss\')" onmouseover="alert(\'xss\')">Content</div>';
       const result = sanitizeHtml(htmlWithEvents);
-      
+
       expect(result).toContain('Content');
       expect(result).not.toContain('onclick');
       expect(result).not.toContain('onmouseover');
@@ -161,7 +168,7 @@ describe('Renderer Utils', () => {
     test('preserves safe HTML', () => {
       const safeHtml = '<p><strong>Bold</strong> and <em>italic</em> text</p>';
       const result = sanitizeHtml(safeHtml);
-      
+
       expect(result).toContain('<strong>');
       expect(result).toContain('<em>');
       expect(result).toContain('Bold');
@@ -178,24 +185,24 @@ describe('Renderer Utils', () => {
   describe('copyToClipboard', () => {
     test('copies text to clipboard successfully', async () => {
       const text = 'Test text to copy';
-      
+
       const result = await copyToClipboard(text);
-      
+
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(text);
       expect(result).toBe(true);
     });
 
     test('handles clipboard API errors', async () => {
       navigator.clipboard.writeText.mockRejectedValueOnce(new Error('Clipboard error'));
-      
+
       const result = await copyToClipboard('test');
-      
+
       expect(result).toBe(false);
     });
 
     test('handles empty text', async () => {
       const result = await copyToClipboard('');
-      
+
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('');
       expect(result).toBe(true);
     });
@@ -205,7 +212,7 @@ describe('Renderer Utils', () => {
     test('generates unique IDs', () => {
       const id1 = generateId();
       const id2 = generateId();
-      
+
       expect(typeof id1).toBe('string');
       expect(typeof id2).toBe('string');
       expect(id1).not.toBe(id2);
@@ -214,13 +221,13 @@ describe('Renderer Utils', () => {
 
     test('generates IDs with specified prefix', () => {
       const id = generateId('test-');
-      
+
       expect(id).toStartWith('test-');
     });
 
     test('generates IDs with specified length', () => {
       const id = generateId('', 10);
-      
+
       expect(id.length).toBe(10);
     });
   });
@@ -231,10 +238,10 @@ describe('Renderer Utils', () => {
         'test@example.com',
         'user.name@domain.co.uk',
         'first+last@company.org',
-        'user123@test-domain.com'
+        'user123@test-domain.com',
       ];
 
-      validEmails.forEach(email => {
+      validEmails.forEach((email) => {
         expect(validateEmail(email)).toBe(true);
       });
     });
@@ -247,10 +254,10 @@ describe('Renderer Utils', () => {
         'user.name',
         '',
         null,
-        undefined
+        undefined,
       ];
 
-      invalidEmails.forEach(email => {
+      invalidEmails.forEach((email) => {
         expect(validateEmail(email)).toBe(false);
       });
     });
@@ -298,7 +305,7 @@ describe('Renderer Utils', () => {
 
       expect(mockFn).not.toHaveBeenCalled();
 
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       expect(mockFn).toHaveBeenCalledTimes(1);
       expect(mockFn).toHaveBeenCalledWith('arg3');
@@ -324,7 +331,7 @@ describe('Renderer Utils', () => {
       expect(mockFn).toHaveBeenCalledTimes(1);
       expect(mockFn).toHaveBeenCalledWith('arg1');
 
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       throttledFn('arg4');
 
