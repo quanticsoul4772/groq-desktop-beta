@@ -6,7 +6,6 @@
  */
 
 const { spawn } = require('child_process');
-const _path = require('path');
 
 function runTest(testFile) {
   return new Promise((resolve, reject) => {

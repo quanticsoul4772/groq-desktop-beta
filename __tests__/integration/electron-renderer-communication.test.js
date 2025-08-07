@@ -369,7 +369,6 @@ describe('Electron Main-Renderer Communication Integration Tests', () => {
     });
 
     test('handles rapid sequential messages', async () => {
-      const _results = [];
 
       mockIpcMain.handle('rapid-message', async (event, id) => {
         await new Promise((resolve) => setTimeout(resolve, 10));

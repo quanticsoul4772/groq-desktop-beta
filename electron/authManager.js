@@ -27,7 +27,7 @@ const storageHas = promisify(storage.has);
 const ACTIVE_FLOWS_KEY = 'activeAuthFlows';
 let localCallbackServer = null; // Holds the HTTP server instance
 let localCallbackPort = null; // Holds the port the server is listening on
-let _mcpRetryFunc = null; // Variable to hold injected retry function
+let mcpRetryFunc = null; // Variable to hold injected retry function
 
 (async () => {
   try {
@@ -315,8 +315,8 @@ async function processCallbackParams(authorizationCode, receivedState) {
     console.log(
       `[AuthManager][${serverId}] Passing access token: ${tokens?.access_token ? tokens.access_token.substring(0, 10) + '...' : 'MISSING/EMPTY'}`
     );
-    if (typeof _mcpRetryFunc === 'function') {
-      _mcpRetryFunc(serverId, tokens.access_token);
+    if (typeof mcpRetryFunc === 'function') {
+      mcpRetryFunc(serverId, tokens.access_token);
     } else {
       console.error(`[AuthManager][${serverId}] MCP Manager retry function not injected/found!`);
     }
@@ -431,10 +431,10 @@ function initialize(retryFunc) {
   // Accept the function directly
   if (typeof retryFunc !== 'function') {
     console.error('[AuthManager] Invalid retry function passed to initialize.');
-    _mcpRetryFunc = null;
+    mcpRetryFunc = null;
     return;
   }
-  _mcpRetryFunc = retryFunc;
+  mcpRetryFunc = retryFunc;
   console.log('[AuthManager] Initialized with MCP Manager retry function.');
 }
 
