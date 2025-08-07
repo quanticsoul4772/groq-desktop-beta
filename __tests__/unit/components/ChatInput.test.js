@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+/* eslint-disable-next-line no-unused-vars */
 import { ChatContext } from '../../../src/renderer/context/ChatContext';
+/* eslint-disable-next-line no-unused-vars */
 import ChatInput from '../../../src/renderer/components/ChatInput';
 
 // Mock the ChatContext
@@ -11,12 +13,11 @@ const mockChatContext = {
   addMessage: jest.fn(),
 };
 
+/* eslint-disable-next-line no-unused-vars */
 const ChatInputWrapper = ({ children, contextValue = mockChatContext }) => (
   <ChatContext.Provider value={contextValue}>{children}</ChatContext.Provider>
 );
 
-// Explicitly reference components to satisfy ESLint
-ChatInput && ChatContext && ChatInputWrapper;
 
 describe('ChatInput', () => {
   const defaultProps = {

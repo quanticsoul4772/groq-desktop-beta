@@ -43,8 +43,6 @@ const PopupWindowManager = require('./popupWindow');
 // Global variable to hold the main window instance
 let mainWindow;
 
-// Variable to hold loaded model context sizes
-let modelContextSizes = {};
 
 // --- Context Sharing State ---
 let pendingContext = null; // Holds context to be passed to renderer
@@ -196,11 +194,10 @@ app.whenReady().then(async () => {
 
   // Load model context sizes from the JS module
   try {
-    modelContextSizes = MODEL_CONTEXT_SIZES;
+    MODEL_CONTEXT_SIZES;
     console.log('Successfully loaded shared model definitions.');
   } catch (error) {
     console.error('Failed to load shared model definitions:', error);
-    modelContextSizes = { default: { context: 8192, vision_supported: false } }; // Fallback
   } // --- Early IPC Handlers required by popup and renderer before other init --- //
   ipcMain.handle('get-model-configs', async () => {
     // Return a copy to prevent accidental modification with custom models merged in

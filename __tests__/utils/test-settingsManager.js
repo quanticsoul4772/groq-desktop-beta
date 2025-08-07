@@ -3,10 +3,9 @@ const path = require('path');
 const os = require('os');
 
 // Import the settingsManager
+/* eslint-disable-next-line no-unused-vars */
 const { loadSettings, initializeSettingsHandlers } = require('./electron/settingsManager.js');
 
-// Explicitly reference to satisfy ESLint
-loadSettings && initializeSettingsHandlers;
 
 // Import shared test utilities for performance optimization
 const { testUtils } = require('./test-utils.js');
@@ -146,9 +145,6 @@ const originalEnv = setupTestEnvironment();
 
 // Test 1: loadSettings without app instance returns minimal defaults
 test('loadSettings without app instance returns minimal defaults', () => {
-  // Temporarily clear the app instance
-  const _settingsManagerModule = require('./electron/settingsManager.js');
-
   // Clear any cached app instance by requiring fresh module
   delete require.cache[require.resolve('./electron/settingsManager.js')];
   const freshModule = require('./electron/settingsManager.js');
