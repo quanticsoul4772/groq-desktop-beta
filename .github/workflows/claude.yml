@@ -62,22 +62,110 @@ jobs:
           
           # Allow Claude to run specific commands for package management and git operations
           allowed_tools: |
+            # Package Management
             Bash(npm install:*)
+            Bash(npm run:*)
+            Bash(npm test:*)
+            Bash(npm ci:*)
             Bash(pnpm add:*)
             Bash(pnpm install:*)
             Bash(pnpm run:*)
+            Bash(pnpm test:*)
+            Bash(pnpm build:*)
+            Bash(pnpm dev:*)
+            Bash(pnpm format:*)
+            Bash(pnpm lint:*)
+            Bash(pnpm benchmark:*)
+            Bash(pnpm dist:*)
+            Bash(pnpm --version)
+            
+            # NPX Tools
             Bash(npx husky:*)
             Bash(npx lint-staged:*)
             Bash(npx jsonlint:*)
+            Bash(npx prettier:*)
+            Bash(npx eslint:*)
+            Bash(npx jest:*)
+            Bash(npx vite:*)
+            Bash(npx electron:*)
+            Bash(npx depcheck:*)
+            
+            # Node.js
+            Bash(node:*)
+            Bash(node scripts/*)
+            Bash(node __tests__/*)
+            
+            # Git Operations
             Bash(git add:*)
             Bash(git commit:*)
             Bash(git push:*)
+            Bash(git pull:*)
+            Bash(git fetch:*)
             Bash(git status:*)
             Bash(git diff:*)
             Bash(git log:*)
+            Bash(git branch:*)
+            Bash(git checkout:*)
+            Bash(git merge:*)
+            Bash(git rebase:*)
+            Bash(git stash:*)
             Bash(git rm:*)
-            Bash(which pnpm)
-            Bash(pnpm --version)
+            Bash(git mv:*)
+            Bash(git reset:*)
+            Bash(git show:*)
+            Bash(git tag:*)
+            Bash(git remote:*)
+            
+            # GitHub CLI
+            Bash(gh pr:*)
+            Bash(gh issue:*)
+            Bash(gh repo:*)
+            Bash(gh workflow:*)
+            
+            # File System Operations
+            Bash(ls:*)
+            Bash(cat:*)
+            Bash(echo:*)
+            Bash(pwd)
+            Bash(cd:*)
+            Bash(mkdir:*)
+            Bash(rm:*)
+            Bash(cp:*)
+            Bash(mv:*)
+            Bash(touch:*)
+            Bash(chmod:*)
+            Bash(find:*)
+            Bash(grep:*)
+            Bash(sed:*)
+            Bash(awk:*)
+            Bash(head:*)
+            Bash(tail:*)
+            Bash(wc:*)
+            Bash(sort:*)
+            Bash(uniq:*)
+            
+            # System Information
+            Bash(which:*)
+            Bash(whoami)
+            Bash(uname:*)
+            Bash(env)
+            Bash(printenv:*)
+            
+            # Testing & CI
+            Bash(jest:*)
+            Bash(./test-*.sh)
+            Bash(bash test-*.sh)
+            Bash(sh test-*.sh)
+            
+            # JSON/YAML Tools
+            Bash(jq:*)
+            Bash(yq:*)
+            
+            # Process Management
+            Bash(ps:*)
+            Bash(kill:*)
+            Bash(pkill:*)
+            Bash(lsof:*)
           
           # Optional: Add custom instructions for Claude to customize its behavior for your project
           # custom_instructions: |
