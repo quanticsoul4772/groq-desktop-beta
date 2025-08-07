@@ -140,11 +140,12 @@ class PipelineParity {
   }
 
   async runLinting() {
-    this.log('Running ESLint with --max-warnings 0...', 'info');
+    const maxWarnings = this.config.eslintConfig?.maxWarnings ?? 0;
+    this.log(`Running ESLint with --max-warnings ${maxWarnings}...`, 'info');
 
     try {
-      // Run ESLint - allowing some warnings for now, focus on errors
-      execSync('npx eslint . --max-warnings 100', {
+      // Run ESLint with configured max-warnings value
+      execSync(`npx eslint . --max-warnings ${maxWarnings}`, {
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe'],
       });
