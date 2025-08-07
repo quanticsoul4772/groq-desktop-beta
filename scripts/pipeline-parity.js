@@ -9,7 +9,7 @@
  * - Phase 2: Coverage Enforcement (90% threshold validation)
  */
 
-const { execSync } = require('child_process');
+const { execSync: _execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -42,8 +42,13 @@ class PipelineParity {
 
   loadConfig() {
     const configPath = path.join(process.cwd(), '.pipeline-parityrc.json');
-    if (fs.existsSync(configPath)) {
-      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    try {
+      const configData = fs.readFileSync(configPath, 'utf8');
+      return JSON.parse(configData);
+    } catch (error) {
+      if (error.code !== 'ENOENT' && this.options.verbose) {
+        this.log(`Warning: Failed to load config from ${configPath}: ${error.message}`, 'warning');
+      }
     }
 
     // Default configuration matching CI
@@ -125,13 +130,24 @@ class PipelineParity {
     process.env.CI = 'true';
     process.env.NODE_ENV = 'test';
 
-    // Create cache directory
+    // Create cache directory with proper error handling
     const cacheDir = path.join(process.cwd(), this.config.cacheDirectory);
-    if (!fs.existsSync(cacheDir)) {
-      fs.mkdirSync(cacheDir, { recursive: true });
-      fs.mkdirSync(path.join(cacheDir, 'coverage'), { recursive: true });
-      fs.mkdirSync(path.join(cacheDir, 'logs'), { recursive: true });
-      fs.mkdirSync(path.join(cacheDir, 'reports'), { recursive: true });
+    const directories = [
+      cacheDir,
+      path.join(cacheDir, 'coverage'),
+      path.join(cacheDir, 'logs'),
+      path.join(cacheDir, 'reports')
+    ];
+    
+    for (const dir of directories) {
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch (error) {
+        if (error.code !== 'EEXIST') {
+          this.log(`Failed to create directory ${dir}: ${error.message}`, 'error');
+          throw error;
+        }
+      }
     }
 
     this.results.environment.status = 'success';
@@ -287,7 +303,9 @@ class PipelineParity {
         const files = glob.sync(pattern);
         testFiles.push(...files);
       } catch (error) {
-        // Ignore glob errors for patterns that don't match
+        if (this.options.verbose) {
+          this.log(`Warning: Glob pattern failed for ${pattern}: ${error.message}`, 'warning');
+        }
       }
     }
 

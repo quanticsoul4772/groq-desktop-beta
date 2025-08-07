@@ -33,18 +33,44 @@ class ProgressTracker {
     // Progress messages
     this.progressMessages = [];
     this.currentMessage = '';
+    
+    // Register cleanup handlers
+    this.setupSignalHandlers();
+  }
+
+  setupSignalHandlers() {
+    const cleanup = () => {
+      this.cleanup();
+      process.exit(0);
+    };
+    
+    process.on('SIGINT', cleanup);
+    process.on('SIGTERM', cleanup);
+    process.on('SIGHUP', cleanup);
+  }
+  
+  cleanup() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+    
+    if (this.showSpinner && !this.completed) {
+      // Clear spinner line and restore cursor
+      process.stdout.write('\r\x1b[K');
+    }
   }
 
   loadHistory() {
     try {
-      if (fs.existsSync(this.historyFile)) {
-        const data = fs.readFileSync(this.historyFile, 'utf8');
-        return JSON.parse(data);
-      }
+      const data = fs.readFileSync(this.historyFile, 'utf8');
+      return JSON.parse(data);
     } catch (error) {
-      // Ignore errors, start with empty history
+      if (this.verbose && error.code !== 'ENOENT') {
+        console.warn(`Warning: Failed to load timing history: ${error.message}`);
+      }
+      return {};
     }
-    return {};
   }
 
   saveHistory(duration) {
@@ -64,15 +90,21 @@ class ProgressTracker {
         history[this.name] = history[this.name].slice(-10);
       }
       
-      // Ensure directory exists
+      // Ensure directory exists with proper error handling
       const dir = path.dirname(this.historyFile);
-      if (!fs.existsSync(dir)) {
+      try {
         fs.mkdirSync(dir, { recursive: true });
+      } catch (mkdirError) {
+        if (mkdirError.code !== 'EEXIST') {
+          throw mkdirError;
+        }
       }
       
       fs.writeFileSync(this.historyFile, JSON.stringify(history, null, 2));
     } catch (error) {
-      // Ignore errors in saving history
+      if (this.verbose) {
+        console.warn(`Warning: Failed to save timing history: ${error.message}`);
+      }
     }
   }
 
@@ -133,22 +165,28 @@ class ProgressTracker {
     this.lastUpdate = this.startTime;
     this.completed = false;
     
-    if (this.showSpinner) {
-      // Clear any existing interval
-      if (this.interval) {
-        clearInterval(this.interval);
+    try {
+      if (this.showSpinner) {
+        // Clear any existing interval
+        if (this.interval) {
+          clearInterval(this.interval);
+        }
+        
+        this.interval = setInterval(() => {
+          this.updateSpinner();
+        }, 100); // Update spinner every 100ms
+      } else {
+        // For non-TTY, show periodic updates
+        this.log(`Starting ${this.name}...`);
+        
+        this.interval = setInterval(() => {
+          this.log(this.getProgressMessage());
+        }, this.updateInterval);
       }
-      
-      this.interval = setInterval(() => {
-        this.updateSpinner();
-      }, 100); // Update spinner every 100ms
-    } else {
-      // For non-TTY, show periodic updates
-      this.log(`Starting ${this.name}...`);
-      
-      this.interval = setInterval(() => {
-        this.log(this.getProgressMessage());
-      }, this.updateInterval);
+    } catch (error) {
+      // Clean up on error
+      this.cleanup();
+      throw error;
     }
   }
 
@@ -186,17 +224,10 @@ class ProgressTracker {
   complete(success = true, finalMessage = null) {
     this.completed = true;
     
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
+    // Always clean up resources
+    this.cleanup();
     
     const duration = Math.floor((Date.now() - this.startTime) / 1000);
-    
-    if (this.showSpinner) {
-      // Clear spinner line
-      process.stdout.write('\r\x1b[K');
-    }
     
     const status = success ? '✅' : '❌';
     const statusText = success ? 'completed' : 'failed';
@@ -214,9 +245,9 @@ class ProgressTracker {
   // Static method to create and run a progress-tracked operation
   static async track(name, operation, options = {}) {
     const tracker = new ProgressTracker({ name, ...options });
-    tracker.start();
     
     try {
+      tracker.start();
       const result = await operation(tracker);
       tracker.complete(true);
       return result;
